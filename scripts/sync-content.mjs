@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 同步 Bilibili 视频与 GitHub 公开仓库。
  * 构建前自动运行；网络失败时保留已有快照，不阻断构建。
  */
@@ -9,7 +9,7 @@ const root = path.resolve(import.meta.dirname, '..');
 const dataDir = path.join(root, 'src/data');
 
 const BILIBILI_MID = '3494363455818333';
-const GITHUB_USER = 'chcucu';
+const GITHUB_USER = 'shadow-agent404';
 const MOBILE_UA =
   'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1';
 

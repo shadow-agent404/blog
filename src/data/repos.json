@@ -1,10 +1,10 @@
-{
+﻿{
   "fetchedAt": "2026-11-14T08:45:20.526Z",
-  "source": "https://github.com/chcucu?tab=repositories",
+  "source": "https://github.com/shadow-agent404?tab=repositories",
   "repos": [
     {
       "name": "-21-",
-      "url": "https://github.com/chcucu/-21-",
+      "url": "https://github.com/shadow-agent404/-21-",
       "description": "",
       "homepage": "",
       "language": "HTML",
@@ -17,7 +17,7 @@
     },
     {
       "name": "blog",
-      "url": "https://github.com/chcucu/blog",
+      "url": "https://github.com/shadow-agent404/blog",
       "description": "S.A · shadow_agent404 的个人站点与内容索引",
       "homepage": "https://blog.tenyearmc.top",
       "language": "Astro",
@@ -35,7 +35,7 @@
     },
     {
       "name": "meetease",
-      "url": "https://github.com/chcucu/meetease",
+      "url": "https://github.com/shadow-agent404/meetease",
       "description": "基于 Next.js 的活动平台，包含活动列表、地图定位与数据存储。",
       "homepage": "",
       "language": "TypeScript",
@@ -48,7 +48,7 @@
     },
     {
       "name": "CleanPlayers",
-      "url": "https://github.com/chcucu/CleanPlayers",
+      "url": "https://github.com/shadow-agent404/CleanPlayers",
       "description": "",
       "homepage": "",
       "language": "Java",
@@ -61,7 +61,7 @@
     },
     {
       "name": "FiscalCraft",
-      "url": "https://github.com/chcucu/FiscalCraft",
+      "url": "https://github.com/shadow-agent404/FiscalCraft",
       "description": "Paper 1.21.11 服务器经济系统插件（银行 / 税收 / 贷款 / 风控），Vault 钱包底座，单线程串行账务。",
       "homepage": "",
       "language": "Java",
@@ -81,7 +81,7 @@
     },
     {
       "name": "BrewerySuite",
-      "url": "https://github.com/chcucu/BrewerySuite",
+      "url": "https://github.com/shadow-agent404/BrewerySuite",
       "description": "BreweryX 酒桶全息显示、配方书与酒市插件",
       "homepage": "",
       "language": "Java",
@@ -94,7 +94,7 @@
     },
     {
       "name": "ticket-system",
-      "url": "https://github.com/chcucu/ticket-system",
+      "url": "https://github.com/shadow-agent404/ticket-system",
       "description": "",
       "homepage": "",
       "language": "TypeScript",
@@ -107,7 +107,7 @@
     },
     {
       "name": "BentoMenu",
-      "url": "https://github.com/chcucu/BentoMenu",
+      "url": "https://github.com/shadow-agent404/BentoMenu",
       "description": "A themeable container-menu framework for Spigot, Paper and Folia (1.18.2-26.x). YAML menus, Java/Kotlin API, no NMS.",
       "homepage": "",
       "language": "Java",
@@ -131,7 +131,7 @@
     },
     {
       "name": "Schneckenhaus-Refactored",
-      "url": "https://github.com/chcucu/Schneckenhaus-Refactored",
+      "url": "https://github.com/shadow-agent404/Schneckenhaus-Refactored",
       "description": "Refactored fork of Lama06/Schneckenhaus: fixes the SQLite primary key conflict, the shulker box duplication exploit, and improves /sh home.",
       "homepage": "https://github.com/Lama06/Schneckenhaus",
       "language": "Java",

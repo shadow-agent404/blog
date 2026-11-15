@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 站点配置：上线前优先修改这里。
  * 所有可替换的占位信息都集中在 site 对象里，改完即生效。
  */
@@ -37,7 +37,7 @@ export const site = {
       href: 'https://space.bilibili.com/3494363455818333',
       icon: 'bilibili',
     },
-    { label: 'GitHub', href: 'https://github.com/chcucu', icon: 'github' },
+    { label: 'GitHub', href: 'https://github.com/shadow-agent404', icon: 'github' },
     {
       label: 'Modrinth',
       href: 'https://modrinth.com/project/AQ3n1LCg',
@@ -53,7 +53,7 @@ export const site = {
 
   /** Giscus 评论：在 https://giscus.app 获取这四个值后填入即可开启。 */
   giscus: {
-    repo: 'chcucu/blog',
+    repo: 'shadow-agent404/blog',
     repoId: 'R_kgDOVnQsFw',
     category: 'Announcements',
     categoryId: 'DIC_kwDOVnQsF84DKq4t',
