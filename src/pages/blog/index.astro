@@ -2,13 +2,16 @@
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/Icon.astro';
 import PostCard from '../../components/PostCard.astro';
+import SeriesFeature from '../../components/SeriesFeature.astro';
 import { categories, categoryLabel, tagToSlug } from '../../data/taxonomy';
-import { categoryCounts, getPosts, tagCounts } from '../../lib/posts';
+import { categoryCounts, getPosts, latestSeries, seriesPosts, tagCounts } from '../../lib/posts';
 import { site } from '../../site.config';
 
 const posts = await getPosts();
 const cats = categoryCounts(posts);
 const tags = tagCounts(posts);
+const seriesName = latestSeries(posts);
+const issuePosts = seriesPosts(posts, seriesName);
 const zhCount = posts.filter((post) => post.data.lang === 'zh').length;
 const enCount = posts.length - zhCount;
 
@@ -99,6 +102,14 @@ const jsonLd = {
     </div>
   </section>
 
+  {
+    seriesName && (
+      <div class="container issue-band">
+        <SeriesFeature name={seriesName} posts={issuePosts} compact />
+      </div>
+    )
+  }
+
   <section class="container journal" aria-labelledby="post-list-title">
     <h2 class="visually-hidden" id="post-list-title">文章列表</h2>
     <p class="result-count" role="status" aria-live="polite" data-result-count>
@@ -153,6 +164,10 @@ const jsonLd = {
 <style>
   .journal {
     padding-top: 0;
+  }
+
+  .issue-band {
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
   }
 
   .pill-nav--lang {

@@ -3,16 +3,21 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 import PostCard from '../components/PostCard.astro';
 import FeaturedPost from '../components/FeaturedPost.astro';
+import SeriesFeature from '../components/SeriesFeature.astro';
 import VideoCard from '../components/VideoCard.astro';
 import VideoPlayer from '../components/VideoPlayer.astro';
 import RepoRow from '../components/RepoRow.astro';
 import videosData from '../data/videos.json';
 import reposData from '../data/repos.json';
 import { categoryLabel } from '../data/taxonomy';
+import { seriesMeta } from '../data/series';
 import {
   categoryCounts,
   getPosts,
   getProjects,
+  latestSeries,
+  readingMinutes,
+  seriesPosts,
 } from '../lib/posts';
 import { site } from '../site.config';
 
@@ -21,8 +26,13 @@ const projects = await getProjects();
 const videos = videosData.videos.slice(0, 3);
 const repos = reposData.repos.slice(0, 5);
 
+const seriesName = latestSeries(posts);
+const issuePosts = seriesPosts(posts, seriesName);
+const issueIds = new Set(issuePosts.map((post) => post.id));
 const featured = posts.find((post) => post.data.featured) ?? posts[0];
-const gridPosts = posts.filter((post) => post.id !== featured?.id).slice(0, 6);
+const gridPosts = posts
+  .filter((post) => !issueIds.has(post.id) && post.id !== featured?.id)
+  .slice(0, 6);
 const cats = categoryCounts(posts);
 const zhCount = posts.filter((post) => post.data.lang === 'zh').length;
 const enCount = posts.length - zhCount;
@@ -50,8 +60,35 @@ const jsonLd = {
   <section class="masthead">
     <span class="masthead__ghost" aria-hidden="true">S</span>
     <div class="container">
-      <p class="kicker">S.A · Vol. {issue}</p>
-      <h1 class="masthead__title">记录开发、<em>摄影与影像</em>。</h1>
+      <p class="kicker">
+        {seriesName
+          ? `本期专题 / ${seriesMeta[seriesName]?.en ?? 'Series'}`
+          : `S.A · Vol. ${issue}`}
+      </p>
+      <h1 class="masthead__title">
+        {seriesName ? (
+          `${seriesName}。`
+        ) : (
+          <>
+            记录开发、<em>摄影与影像</em>。
+          </>
+        )}
+      </h1>
+      {
+        seriesName && (
+          <p class="masthead__lede">
+            {seriesMeta[seriesName]?.intro ?? `本期专题收录 ${issuePosts.length} 篇文章。`}
+          </p>
+        )
+      }
+      {
+        seriesName && (
+          <p class="masthead__count">
+            {issuePosts.length} 篇 · 约{' '}
+            {issuePosts.reduce((sum, post) => sum + readingMinutes(post.body ?? ''), 0)} 分钟
+          </p>
+        )
+      }
       <form class="journal-search" action="/search/" method="get" role="search">
         <label class="visually-hidden" for="home-search">搜索文章</label>
         <span class="journal-search__icon" aria-hidden="true">
@@ -68,6 +105,14 @@ const jsonLd = {
           <Icon name="arrow-right" size={17} />
         </button>
       </form>
+
+      {
+        seriesName && (
+          <div class="masthead__issue">
+            <SeriesFeature name={seriesName} posts={issuePosts} showHead={false} />
+          </div>
+        )
+      }
 
       <nav class="entry-grid" aria-label="站点入口">
         <a class="entry-card" href="/about/">
@@ -137,7 +182,7 @@ const jsonLd = {
   }
 
   {
-    featured && (
+    !seriesName && featured && (
       <section class="container home-featured" aria-label="精选文章">
         <FeaturedPost post={featured} />
       </section>
@@ -232,6 +277,11 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
+  .masthead__issue {
+    margin-top: clamp(1.8rem, 4vw, 2.8rem);
+    text-align: left;
+  }
+
   .home-featured {
     margin-bottom: clamp(3.5rem, 7vw, 5.5rem);
   }

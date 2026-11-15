@@ -82,6 +82,14 @@ content:
         label: 封面艺术字
         type: string
         description: 可选。显示在封面底部的文字，默认取第一个标签。
+      - name: series
+        label: 所属专题
+        type: string
+        description: 可选。同一专题的文章会聚合成专题卡片。
+      - name: seriesOrder
+        label: 专题内顺序
+        type: number
+        description: 可选。数字越小越靠前，默认 0。
       - name: body
         label: 正文
         type: rich-text

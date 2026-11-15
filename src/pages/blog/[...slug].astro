@@ -12,7 +12,14 @@ import ReadingAids from '../../components/ReadingAids.astro';
 import Mermaid from '../../components/Mermaid.astro';
 import PostCard from '../../components/PostCard.astro';
 import { categories, categoryLabel, languageLabel, tagToSlug } from '../../data/taxonomy';
-import { formatDate, getPosts, relatedPosts, type Post } from '../../lib/posts';
+import {
+  formatDate,
+  getPosts,
+  readingMinutes,
+  relatedPosts,
+  seriesPosts,
+  type Post,
+} from '../../lib/posts';
 import { site } from '../../site.config';
 
 export async function getStaticPaths() {
@@ -35,6 +42,9 @@ const index = allPosts.findIndex((item) => item.id === post.id);
 const newer = index > 0 ? allPosts[index - 1] : undefined;
 const older = index < allPosts.length - 1 ? allPosts[index + 1] : undefined;
 const related = relatedPosts(post, allPosts, 3);
+const series = seriesPosts(allPosts, post.data.series);
+const seriesIndex = series.findIndex((item) => item.id === post.id);
+const reading = readingMinutes(post.body ?? '');
 
 const category = categories[post.data.category];
 const canonical = new URL(Astro.url.pathname, site.url).href;
@@ -115,11 +125,25 @@ const breadcrumbLd = {
         {post.data.featured && <span class="article-head__featured">精选</span>}
       </div>
 
+      {
+        post.data.series && (
+          <p class="article-series">
+            收录于专题
+            <a href="/#issue">《{post.data.series}》</a>
+            <span>
+              {String(seriesIndex + 1).padStart(2, '0')} / {String(series.length).padStart(2, '0')}
+            </span>
+          </p>
+        )
+      }
+
       <h1 class="article-head__title">{post.data.title}</h1>
       <p class="article-head__desc">{post.data.description}</p>
 
       <div class="article-head__foot">
         <time datetime={post.data.date.toISOString()}>{formatDate(post.data.date, lang)}</time>
+        <span aria-hidden="true">·</span>
+        <span>{reading} 分钟</span>
         <span aria-hidden="true">·</span>
         <span>{lang === 'en' ? 'Written in English' : '用中文写作'}</span>
         <span aria-hidden="true">·</span>
@@ -178,6 +202,37 @@ const breadcrumbLd = {
         <Toc headings={headings} />
       </aside>
     </div>
+
+    {
+      series.length > 1 && (
+        <nav class="series-nav container" aria-label={`专题《${post.data.series}》`}>
+          <div class="series-nav__head">
+            <div>
+              <p class="kicker">同专题</p>
+              <h2>《{post.data.series}》</h2>
+            </div>
+            <span class="series-nav__count">
+              {String(seriesIndex + 1).padStart(2, '0')} / {String(series.length).padStart(2, '0')}
+            </span>
+          </div>
+          <ol>
+            {series.map((item, index) => (
+              <li>
+                <a
+                  href={`/blog/${item.id}/`}
+                  aria-current={item.id === post.id ? 'page' : undefined}
+                >
+                  <span class="series-nav__no">{String(index + 1).padStart(2, '0')}</span>
+                  <span class="series-nav__title">{item.data.title}</span>
+                  <span class="series-nav__meta">{readingMinutes(item.body ?? '')} 分钟</span>
+                  <Icon name="arrow-right" size={15} />
+                </a>
+              </li>
+            ))}
+          </ol>
+        </nav>
+      )
+    }
 
     {
       (newer || older) && (
@@ -269,6 +324,32 @@ const breadcrumbLd = {
 
   .article-head__meta .chip {
     text-decoration: none;
+  }
+
+  .article-series {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+
+  .article-series a {
+    color: var(--clay);
+    text-decoration: none;
+    border-bottom: 1px solid color-mix(in srgb, var(--clay) 40%, transparent);
+  }
+
+  .article-series a:hover {
+    border-bottom-color: var(--clay);
+  }
+
+  .article-series span {
+    opacity: 0.72;
   }
 
   .article-head__featured {
@@ -429,6 +510,110 @@ const breadcrumbLd = {
     gap: 0.6rem;
   }
 
+  /* 专题导航 */
+  .series-nav {
+    margin-top: clamp(3rem, 6vw, 4.5rem);
+    padding-top: 1.3rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .series-nav__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.7rem;
+  }
+
+  .series-nav__head h2 {
+    margin-top: 0.45rem;
+    font-size: clamp(1.35rem, 2.6vw, 1.8rem);
+    letter-spacing: -0.025em;
+  }
+
+  .series-nav__count {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+
+  .series-nav ol {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .series-nav li {
+    border-bottom: 1px dashed var(--rule-soft);
+  }
+
+  .series-nav li:last-child {
+    border-bottom: 0;
+  }
+
+  .series-nav a {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) auto auto;
+    align-items: baseline;
+    gap: 0.8rem;
+    padding: 0.8rem 0.2rem;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition: color 0.2s var(--ease);
+  }
+
+  .series-nav a:hover {
+    color: var(--ink);
+  }
+
+  .series-nav a[aria-current='page'] {
+    color: var(--ink);
+  }
+
+  .series-nav a[aria-current='page'] .series-nav__title::after {
+    content: '当前';
+    display: inline-block;
+    margin-left: 0.55rem;
+    padding: 0.05rem 0.35rem;
+    border: 1px solid var(--rule);
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.08em;
+    vertical-align: 0.12em;
+  }
+
+  .series-nav__no {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--clay);
+  }
+
+  .series-nav__title {
+    font-family: var(--font-display);
+    font-size: 1.02rem;
+    line-height: 1.4;
+  }
+
+  .series-nav__meta {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .series-nav :global(svg) {
+    color: var(--ink-3);
+    transition: transform 0.2s var(--ease), color 0.2s var(--ease);
+  }
+
+  .series-nav a:hover :global(svg) {
+    color: var(--clay);
+    transform: translateX(3px);
+  }
+
   /* 翻页 */
   .article-pager {
     display: grid;
@@ -564,6 +749,14 @@ const breadcrumbLd = {
     .related-head {
       flex-direction: column;
       align-items: flex-start;
+    }
+
+    .series-nav a {
+      grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+    }
+
+    .series-nav__meta {
+      display: none;
     }
   }
 </style>

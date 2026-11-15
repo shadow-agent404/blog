@@ -1,0 +1,368 @@
+---
+import Icon from './Icon.astro';
+import { categoryLabel } from '../data/taxonomy';
+import { seriesMeta } from '../data/series';
+import { formatDate, postUrl, readingMinutes, type Post } from '../lib/posts';
+
+interface Props {
+  name: string;
+  posts: Post[];
+  compact?: boolean;
+  showHead?: boolean;
+  id?: string;
+}
+
+const { name, posts, compact = false, showHead = true, id = 'issue' } = Astro.props;
+const meta = seriesMeta[name];
+const totalMinutes = posts.reduce((sum, post) => sum + readingMinutes(post.body ?? ''), 0);
+const tones = ['clay', 'blue', 'sand'] as const;
+---
+
+{
+  compact ? (
+    <section class="issue issue--compact" id={id} aria-labelledby={`${id}-title`}>
+      <div class="issue__compact-head">
+        <p class="kicker">本期专题</p>
+        <h2 id={`${id}-title`} class="issue__compact-title">{name}</h2>
+        <span class="issue__compact-meta">
+          {meta?.en ?? 'Series'} · {posts.length} 篇 · 约 {totalMinutes} 分钟
+        </span>
+      </div>
+      <ol class="issue__links">
+        {posts.map((post, index) => (
+          <li>
+            <a href={postUrl(post)}>
+              <span class="issue__link-no">{String(index + 1).padStart(2, '0')}</span>
+              <span class="issue__link-title">{post.data.title}</span>
+              <span class="issue__link-meta">{readingMinutes(post.body ?? '')} 分钟</span>
+              <Icon name="arrow-right" size={14} />
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ) : (
+    <section class:list={['issue', { 'issue--bare': !showHead }]} id={id} aria-labelledby={`${id}-title`}>
+      {showHead && (
+        <header class="issue__head">
+          <p class="kicker">本期专题 / {meta?.en ?? 'Series'}</p>
+          <h2 id={`${id}-title`} class="issue__title">{name}</h2>
+          <p class="issue__lede">
+            {meta?.intro ?? `本期专题收录 ${posts.length} 篇文章。`}
+          </p>
+          <p class="issue__meta">
+            {posts.length} 篇 · 约 {totalMinutes} 分钟
+          </p>
+        </header>
+      )}
+      {!showHead && <h2 id={`${id}-title`} class="visually-hidden">{name}</h2>}
+
+      <ol class="issue__tickets">
+        {posts.map((post, index) => {
+          const tone = tones[index % tones.length];
+          return (
+            <li>
+              <a class="ticket" data-tone={tone} href={postUrl(post)}>
+                <span class="ticket__top">
+                  <span class="ticket__no">NO. {String(index + 1).padStart(2, '0')}</span>
+                  <span class="ticket__word">
+                    {post.data.coverWord ?? categoryLabel(post.data.category)}
+                  </span>
+                </span>
+                <span class="ticket__title">{post.data.title}</span>
+                <span class="ticket__desc">{post.data.description}</span>
+                <span class="ticket__stub">
+                  <span>{formatDate(post.data.date, post.data.lang)}</span>
+                  <span>{readingMinutes(post.body ?? '')} 分钟</span>
+                  <span class="ticket__read">
+                    阅读
+                    <Icon name="arrow-right" size={13} />
+                  </span>
+                </span>
+              </a>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  )
+}
+
+<style>
+  .issue {
+    --ticket-accent: var(--clay);
+    text-align: left;
+  }
+
+  .issue__head {
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .issue__title {
+    margin-top: 0.8rem;
+    font-size: clamp(2.5rem, 6vw, 4.2rem);
+    line-height: 0.98;
+    letter-spacing: -0.045em;
+  }
+
+  .issue__lede {
+    max-width: 40rem;
+    margin-top: 1rem;
+    color: var(--ink-2);
+    font-size: clamp(0.96rem, 1.4vw, 1.06rem);
+    line-height: 1.9;
+    text-wrap: pretty;
+  }
+
+  .issue__meta {
+    margin-top: 0.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .issue__tickets {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(0.9rem, 2vw, 1.4rem);
+    margin: clamp(1.4rem, 3vw, 2rem) 0 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .issue--bare .issue__tickets {
+    margin-top: 1.2rem;
+  }
+
+  .ticket {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    height: 100%;
+    min-height: 17rem;
+    padding: 1.15rem 1.2rem 1rem;
+    border: 1px solid var(--rule);
+    border-top: 3px solid var(--ticket-accent);
+    border-radius: 3px;
+    background: var(--paper-raised);
+    color: var(--ink);
+    text-decoration: none;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    transition: transform 0.3s var(--ease), border-color 0.3s var(--ease),
+      box-shadow 0.3s var(--ease);
+  }
+
+  .ticket[data-tone='clay'] {
+    --ticket-accent: var(--clay);
+  }
+
+  .ticket[data-tone='blue'] {
+    --ticket-accent: var(--blue);
+  }
+
+  .ticket[data-tone='sand'] {
+    --ticket-accent: var(--sand);
+  }
+
+  .ticket:hover {
+    transform: translateY(-4px);
+    border-color: var(--ticket-accent);
+    box-shadow: var(--shadow-lift);
+  }
+
+  .ticket__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.8rem;
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .ticket__word {
+    color: var(--ticket-accent);
+  }
+
+  .ticket__title {
+    font-family: var(--font-display);
+    font-size: clamp(1.24rem, 2vw, 1.5rem);
+    font-weight: 500;
+    line-height: 1.22;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+    transition: color 0.25s var(--ease);
+  }
+
+  .ticket:hover .ticket__title {
+    color: var(--ticket-accent);
+  }
+
+  .ticket__desc {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    color: var(--ink-3);
+    font-size: 0.82rem;
+    line-height: 1.75;
+  }
+
+  .ticket__stub {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: auto;
+    padding-top: 0.7rem;
+    border-top: 1px dashed var(--rule);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-3);
+  }
+
+  .ticket__read {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    margin-left: auto;
+    color: var(--ink-2);
+  }
+
+  .ticket__read :global(svg) {
+    transition: transform 0.25s var(--ease);
+  }
+
+  .ticket:hover .ticket__read {
+    color: var(--ticket-accent);
+  }
+
+  .ticket:hover .ticket__read :global(svg) {
+    transform: translateX(3px);
+  }
+
+  /* 紧凑版：文章列表页顶部 */
+  .issue--compact {
+    display: grid;
+    grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
+    gap: clamp(1.2rem, 3vw, 2.5rem);
+    padding: 1.4rem 0;
+    border-top: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .issue__compact-head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+  }
+
+  .issue__compact-title {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    letter-spacing: -0.03em;
+  }
+
+  .issue__compact-meta {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+  }
+
+  .issue__links {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .issue__links li {
+    border-bottom: 1px dashed var(--rule-soft);
+  }
+
+  .issue__links li:last-child {
+    border-bottom: 0;
+  }
+
+  .issue__links a {
+    display: grid;
+    grid-template-columns: 2rem minmax(0, 1fr) auto auto;
+    align-items: baseline;
+    gap: 0.75rem;
+    min-height: 2.75rem;
+    padding: 0.7rem 0.2rem;
+    color: var(--ink-2);
+    text-decoration: none;
+    transition: color 0.2s var(--ease);
+  }
+
+  .issue__links a:hover {
+    color: var(--ink);
+  }
+
+  .issue__link-no {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    color: var(--clay);
+  }
+
+  .issue__link-title {
+    font-family: var(--font-display);
+    font-size: 0.98rem;
+    line-height: 1.4;
+  }
+
+  .issue__link-meta {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    color: var(--ink-3);
+    white-space: nowrap;
+  }
+
+  .issue__links :global(svg) {
+    color: var(--ink-3);
+    transition: transform 0.2s var(--ease), color 0.2s var(--ease);
+  }
+
+  .issue__links a:hover :global(svg) {
+    color: var(--clay);
+    transform: translateX(3px);
+  }
+
+  @media (max-width: 900px) {
+    .issue__tickets {
+      grid-template-columns: 1fr;
+    }
+
+    .ticket {
+      min-height: 0;
+    }
+
+    .issue--compact {
+      grid-template-columns: 1fr;
+      gap: 0.9rem;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .ticket__desc {
+      -webkit-line-clamp: 4;
+    }
+
+    .issue__link-meta {
+      display: none;
+    }
+
+    .issue__links a {
+      grid-template-columns: 1.6rem minmax(0, 1fr) auto;
+    }
+  }
+</style>

@@ -931,6 +931,22 @@ p {
   text-wrap: pretty;
 }
 
+.prose > p:first-of-type {
+  color: var(--ink);
+  font-size: 1.08em;
+}
+
+.prose > p:last-child::after {
+  content: '';
+  display: inline-block;
+  width: 0.46rem;
+  height: 0.46rem;
+  margin-left: 0.55em;
+  background: var(--blue);
+  transform: rotate(45deg);
+  vertical-align: 0.08em;
+}
+
 .prose a {
   color: var(--blue-strong);
   text-decoration: underline;

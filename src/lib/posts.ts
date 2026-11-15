@@ -92,6 +92,33 @@ export function categoryCounts(posts: Post[]) {
     .filter((item) => item.count > 0);
 }
 
+export function readingMinutes(body = '') {
+  const text = stripMarkdown(body);
+  const cjk = (text.match(/[\u3400-\u9fff]/g) ?? []).length;
+  const words = text.replace(/[\u3400-\u9fff]/g, ' ').split(/\s+/).filter(Boolean).length;
+  return Math.max(1, Math.round(cjk / 400 + words / 220));
+}
+
+export function seriesPosts(posts: Post[], name?: string) {
+  if (!name) return [];
+  return posts
+    .filter((post) => post.data.series === name)
+    .sort((a, b) => a.data.seriesOrder - b.data.seriesOrder || a.data.date.valueOf() - b.data.date.valueOf());
+}
+
+export function latestSeries(posts: Post[], min = 2) {
+  const counts = new Map<string, number>();
+  for (const post of posts) {
+    if (!post.data.series) continue;
+    counts.set(post.data.series, (counts.get(post.data.series) ?? 0) + 1);
+  }
+  for (const post of posts) {
+    const name = post.data.series;
+    if (name && (counts.get(name) ?? 0) >= min) return name;
+  }
+  return undefined;
+}
+
 export function stripMarkdown(markdown = '') {
   return markdown
     .replace(/```[\s\S]*?```/g, ' ')
