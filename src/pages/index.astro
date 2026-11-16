@@ -2,20 +2,13 @@
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
 import PostCard from '../components/PostCard.astro';
-import FeaturedPost from '../components/FeaturedPost.astro';
 import VideoCard from '../components/VideoCard.astro';
 import VideoPlayer from '../components/VideoPlayer.astro';
 import RepoRow from '../components/RepoRow.astro';
 import videosData from '../data/videos.json';
 import reposData from '../data/repos.json';
 import { categoryLabel } from '../data/taxonomy';
-import {
-  categoryCounts,
-  getPosts,
-  getProjects,
-  latestSeries,
-  seriesPosts,
-} from '../lib/posts';
+import { categoryCounts, getPosts, getProjects } from '../lib/posts';
 import { site } from '../site.config';
 
 const posts = await getPosts();
@@ -23,13 +16,6 @@ const projects = await getProjects();
 const videos = videosData.videos.slice(0, 3);
 const repos = reposData.repos.slice(0, 5);
 
-const seriesName = latestSeries(posts);
-const issuePosts = seriesPosts(posts, seriesName);
-const issueIds = new Set(issuePosts.map((post) => post.id));
-const featured = posts.find((post) => post.data.featured) ?? posts[0];
-const gridPosts = posts
-  .filter((post) => !issueIds.has(post.id) && post.id !== featured?.id)
-  .slice(0, 6);
 const cats = categoryCounts(posts);
 
 const jsonLd = {
@@ -102,29 +88,22 @@ const jsonLd = {
   }
 
   {
-    featured && (
-      <section class="container home-featured" aria-label="精选文章">
-        <FeaturedPost post={featured} />
-      </section>
-    )
-  }
-
-  {
-    gridPosts.length > 0 && (
+    posts.length > 0 && (
       <section class="container journal-section" aria-labelledby="latest-title">
         <header class="section-head">
-          <h2 id="latest-title" class="section-head__title">最新文章</h2>
-        </header>
-
-        <div class="post-grid">
-          {gridPosts.map((post, index) => <PostCard post={post} index={index + 1} />)}
-        </div>
-
-        <div class="journal-foot">
-          <a class="btn btn--ghost" href="/blog/">
-            查看全部 {posts.length} 篇
+          <h2 id="latest-title" class="section-head__title">文章</h2>
+          <a class="arrow-link" href="/blog/">
+            全部 {posts.length} 篇
             <Icon name="arrow-right" size={15} />
           </a>
+        </header>
+
+        <div class="post-rail" tabindex="0" aria-label="文章列表，可左右滑动">
+          {posts.map((post, index) => (
+            <div class="post-rail__item">
+              <PostCard post={post} index={index + 1} />
+            </div>
+          ))}
         </div>
       </section>
     )
@@ -196,9 +175,46 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
-  .home-featured {
-    margin-top: clamp(3rem, 7vw, 5rem);
-    margin-bottom: clamp(3.5rem, 7vw, 5.5rem);
+  .journal-section {
+    margin-top: clamp(2.5rem, 6vw, 4rem);
+  }
+
+  .post-rail {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(17rem, 23rem);
+    gap: 1rem;
+    margin-top: 1.4rem;
+    padding-bottom: 0.6rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 0.25rem;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .post-rail:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 4px;
+  }
+
+  .post-rail::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .post-rail::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--rule);
+  }
+
+  .post-rail__item {
+    scroll-snap-align: start;
+  }
+
+  @media (max-width: 560px) {
+    .post-rail {
+      grid-auto-columns: 82%;
+    }
   }
 
   .home-media {
