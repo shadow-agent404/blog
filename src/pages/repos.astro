@@ -75,11 +75,16 @@ const jsonLd = {
     modrinth.length > 0 && (
       <section class="container modrinth-section" aria-labelledby="modrinth-title">
         <header class="section-head">
-          <div>
-            <p class="kicker">Modrinth · 插件版本</p>
-            <h2 id="modrinth-title">正在维护的插件</h2>
-          </div>
-          <span class="folio">构建时同步</span>
+          <h2 id="modrinth-title">插件</h2>
+          <a
+            class="arrow-link"
+            href="https://modrinth.com/user/shadow_agent"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Modrinth
+            <Icon name="external" size={14} />
+          </a>
         </header>
 
         {modrinth.map((project) => (
@@ -186,6 +191,10 @@ const jsonLd = {
       )
     }
   </section>
+
+  <script>
+    import '../scripts/reveal';
+  </script>
 </BaseLayout>
 
 <style>

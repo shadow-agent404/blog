@@ -115,35 +115,38 @@ async function fetchGithub() {
   };
 }
 
+const MODRINTH_USER = 'shadow_agent';
+
 async function fetchModrinth() {
   const headers = {
     Accept: 'application/json',
     'User-Agent': 'sa-blog-content-sync (https://blog.tenyearmc.top)',
   };
-  const targets = [{ id: 'AQ3n1LCg', slug: 'bento' }];
+
+  const listRes = await fetch(`https://api.modrinth.com/v2/user/${MODRINTH_USER}/projects`, {
+    headers,
+    signal: AbortSignal.timeout(20000),
+  });
+  if (!listRes.ok) throw new Error(`Modrinth user HTTP ${listRes.status}`);
+
+  const list = await listRes.json();
+  if (!Array.isArray(list) || list.length === 0) throw new Error('Modrinth 没有公开项目');
+
+  const published = list
+    .filter((project) => project.status === 'approved')
+    .sort((a, b) => (b.downloads ?? 0) - (a.downloads ?? 0) || String(b.updated).localeCompare(String(a.updated)));
+
   const projects = [];
 
-  for (const target of targets) {
-    const [projectRes, versionsRes] = await Promise.all([
-      fetch(`https://api.modrinth.com/v2/project/${target.id}`, {
-        headers,
-        signal: AbortSignal.timeout(20000),
-      }),
-      fetch(`https://api.modrinth.com/v2/project/${target.id}/version`, {
-        headers,
-        signal: AbortSignal.timeout(20000),
-      }),
-    ]);
+  for (const project of published) {
+    const versionsRes = await fetch(`https://api.modrinth.com/v2/project/${project.id}/version`, {
+      headers,
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!versionsRes.ok) continue;
 
-    if (!projectRes.ok || !versionsRes.ok) {
-      throw new Error(`Modrinth HTTP ${projectRes.status}/${versionsRes.status}`);
-    }
-
-    const project = await projectRes.json();
     const versions = await versionsRes.json();
-    if (!Array.isArray(versions) || versions.length === 0) {
-      throw new Error(`Modrinth 项目 ${target.slug} 没有版本`);
-    }
+    if (!Array.isArray(versions) || versions.length === 0) continue;
 
     const sorted = versions
       .slice()
@@ -174,8 +177,10 @@ async function fetchModrinth() {
     });
   }
 
+  if (projects.length === 0) throw new Error('Modrinth 项目都没有版本');
+
   return {
-    source: 'https://modrinth.com/user/shadow-agent404',
+    source: `https://modrinth.com/user/${MODRINTH_USER}`,
     projects,
   };
 }

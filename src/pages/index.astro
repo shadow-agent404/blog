@@ -281,25 +281,7 @@ const jsonLd = {
     right: 0.6rem;
   }
 
-  /* 项目逐条上浮 */
-  [data-reveal] {
-    opacity: 0;
-    transform: translateY(26px);
-    transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
-  }
-
-  [data-reveal].is-visible {
-    opacity: 1;
-    transform: none;
-  }
-
   @media (prefers-reduced-motion: reduce) {
-    [data-reveal] {
-      opacity: 1;
-      transform: none;
-      transition: none;
-    }
-
     .post-rail {
       scroll-behavior: auto;
     }
@@ -312,12 +294,21 @@ const jsonLd = {
   }
 
   @media (max-width: 760px) {
-    .carousel-btn {
-      display: none;
-    }
-
     .post-rail {
       --rail-card: 84%;
+    }
+
+    .carousel-btn {
+      width: 2rem;
+      height: 2rem;
+    }
+
+    .carousel-btn--prev {
+      left: 0.15rem;
+    }
+
+    .carousel-btn--next {
+      right: 0.15rem;
     }
   }
 
@@ -607,28 +598,8 @@ const jsonLd = {
     window.addEventListener('resize', () => setActive(active, true));
   }
 
-  const reveals = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
-  if (reveals.length > 0) {
-    if ('IntersectionObserver' in window) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            const el = entry.target as HTMLElement;
-            el.style.transitionDelay = `${el.dataset.revealDelay ?? 0}ms`;
-            el.classList.add('is-visible');
-            observer.unobserve(el);
-          });
-        },
-        { threshold: 0.2, rootMargin: '0px 0px -6% 0px' },
-      );
+</script>
 
-      reveals.forEach((el, index) => {
-        el.dataset.revealDelay = String(Math.min(index, 5) * 90);
-        observer.observe(el);
-      });
-    } else {
-      reveals.forEach((el) => el.classList.add('is-visible'));
-    }
-  }
+<script>
+  import '../scripts/reveal';
 </script>

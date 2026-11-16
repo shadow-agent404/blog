@@ -1540,6 +1540,18 @@ html:not(.no-js) .no-js-hide {
 .masthead__side > :nth-child(1) { animation-delay: 0.2s; }
 .masthead__side > :nth-child(2) { animation-delay: 0.3s; }
 
+/* 滚动入场：由 scripts/reveal.ts 添加 is-reveal，手机与桌面一致 */
+.is-reveal {
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+}
+
+.is-reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
