@@ -36,9 +36,12 @@ const {
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="theme-color" content="#f5f5f7" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#1c1c1e" media="(prefers-color-scheme: dark)" />
+    <meta name="theme-color" content="#f2eadc" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#15130f" media="(prefers-color-scheme: dark)" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title={`${site.name} RSS`} href="/rss.xml" />
+    <link rel="alternate" type="application/atom+xml" title={`${site.name} Atom`} href="/atom.xml" />
+    <link rel="alternate" type="application/feed+json" title={`${site.name} JSON Feed`} href="/feed.json" />
 
     <script is:inline>
       (() => {
@@ -97,5 +100,10 @@ const {
         />
       )
     }
+
+    <script>
+      import { bootAccount } from '../lib/account-client';
+      bootAccount();
+    </script>
   </body>
 </html>

@@ -16,6 +16,28 @@ export const site = {
   email: 'chenjh8557@outlook.com',
   locale: 'zh-CN',
   startYear: 2024,
+  /** 开源仓库：文章页的「在 GitHub 编辑」与发布入口都指向这里。 */
+  repoUrl: 'https://github.com/shadow-agent404/blog',
+  /** 订阅源：页脚、订阅页和文章页共用，全部是可直接打开的 XML / JSON 文件。 */
+  feeds: [
+    { label: 'RSS 2.0', href: '/rss.xml', hint: '阅读器通用' },
+    { label: 'Atom', href: '/atom.xml', hint: '更严格的 XML' },
+    { label: 'JSON Feed', href: '/feed.json', hint: '给程序读' },
+  ],
+  /**
+   * 分发渠道：只填真实存在的地址，留空则不显示。
+   * 这些不是登录方式，是文章发布后可同步/被订阅的地方。
+   */
+  distribution: [
+    { label: 'Bilibili', href: 'https://space.bilibili.com/3494363455818333', kind: '视频' },
+    { label: 'Modrinth', href: 'https://modrinth.com/project/AQ3n1LCg', kind: '插件' },
+    { label: 'GitHub', href: 'https://github.com/shadow-agent404', kind: '代码' },
+    { label: 'Telegram', href: '', kind: '频道' },
+    { label: 'Bluesky', href: '', kind: '短动态' },
+    { label: 'Mastodon', href: '', kind: '短动态' },
+    { label: '即刻', href: '', kind: '短动态' },
+    { label: '小红书', href: '', kind: '图文' },
+  ] as const,
   /** 首页与关于页展示的身份标签，按你的实际情况修改。 */
   roles: [
     '十年之约服主',

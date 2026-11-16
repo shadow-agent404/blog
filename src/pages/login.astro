@@ -1,0 +1,612 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { authProviders } from '../data/auth-providers';
+
+const oauthProviders = authProviders.filter((provider) => provider.kind !== 'telegram');
+---
+
+<BaseLayout
+  title="登录"
+  description="使用 GitHub、Modrinth、Discord、Google、Spotify、Mastodon、GitLab、Codeberg、Hugging Face、Reddit、Telegram 或邮箱登录。只登录，不注册，不设密码。"
+  noIndex
+>
+  <section class="login-page">
+    <div class="container login-grid">
+      <div class="login-copy">
+        <p class="kicker">登录 / Sign in</p>
+        <h1 class="login-title">只登录，<br /><em>不注册。</em></h1>
+        <p class="login-lede">
+          没有密码，没有注册表单。选一个你已经在用的平台，把身份带过来就好。
+        </p>
+
+        <div class="login-principles">
+          <div class="login-principle">
+            <span class="login-principle__index">01</span>
+            <div>
+              <h2>不收集密码</h2>
+              <p>全部走 OAuth、邮箱魔法链接或 Telegram 登录 Widget。本站不接触、不保存任何密码。</p>
+            </div>
+          </div>
+          <div class="login-principle">
+            <span class="login-principle__index">02</span>
+            <div>
+              <h2>只拿必要信息</h2>
+              <p>用户名、头像、公开主页和邮箱。不会读取你的私信、关注列表或文件。</p>
+            </div>
+          </div>
+          <div class="login-principle">
+            <span class="login-principle__index">03</span>
+            <div>
+              <h2>登录后能做什么</h2>
+              <p>收藏文章、同步阅读记录与点赞、以登录身份评论，并管理订阅偏好。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="login-note paper">
+          <Icon name="shield" size={18} />
+          <p>
+            已排除需要实名认证或绑定信用卡的平台（微信、QQ、Microsoft 等）。每个平台都需要站点主人在
+            Cloudflare 配置自己的 OAuth 应用，未配置的入口会标记为「待配置」。
+          </p>
+        </div>
+      </div>
+
+      <div class="login-panel">
+        <div class="login-card paper">
+          <div class="login-card__head">
+            <div>
+              <p class="eyebrow">邮箱 / Email</p>
+              <h2 class="login-card__title">发一个登录链接</h2>
+            </div>
+            <span class="stamp login-card__stamp" aria-hidden="true">NO<br />PWD</span>
+          </div>
+
+          <form class="login-form" data-email-form novalidate>
+            <label class="field__label" for="login-email">邮箱地址</label>
+            <div class="input-row">
+              <input
+                class="input"
+                id="login-email"
+                name="email"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              />
+              <button class="btn btn--accent" type="submit" data-email-submit>发送</button>
+            </div>
+            <p class="field__hint">
+              15 分钟内有效。收不到就检查垃圾邮件。不会创建密码。
+            </p>
+            <div class="notice" data-email-status hidden></div>
+          </form>
+
+          <div class="login-divider"><span>或者使用平台身份</span></div>
+
+          <div class="auth-provider-grid" data-provider-grid>
+            {
+              oauthProviders.map((provider) => (
+                <a
+                  class="auth-provider"
+                  href={`/api/auth/${provider.id}`}
+                  data-provider-id={provider.id}
+                  data-provider-kind={provider.kind}
+                >
+                  <span class="auth-provider__icon">
+                    <Icon name={provider.icon as any} size={20} />
+                  </span>
+                  <span class="auth-provider__body">
+                    <span class="auth-provider__name">{provider.name}</span>
+                    <span class="auth-provider__blurb">{provider.blurb}</span>
+                  </span>
+                  <span class="auth-provider__state" data-provider-state aria-hidden="true"></span>
+                </a>
+              ))
+            }
+          </div>
+
+          <div class="telegram-wrap">
+            <p class="eyebrow">Telegram / Widget</p>
+            <div class="telegram-slot" data-telegram-slot>
+              <span class="telegram-fallback" data-telegram-fallback>
+                需要配置 AUTH_TELEGRAM_BOT_TOKEN 与 AUTH_TELEGRAM_BOT_USERNAME。
+              </span>
+            </div>
+          </div>
+
+          <p class="login-card__foot">
+            登录即表示你同意本站只把身份用于收藏、阅读记录、点赞、评论身份与订阅偏好。
+            <a class="link-underline" href="/about/">了解站点</a>
+          </p>
+        </div>
+
+        <aside class="login-aside">
+          <p class="eyebrow">为什么是这些平台</p>
+          <p>
+            它们覆盖我的日常：代码在 GitHub / GitLab / Codeberg，Minecraft 在 Modrinth，
+            社区在 Discord / Reddit / Telegram，音乐在 Spotify，动态在 Mastodon，
+            模型在 Hugging Face。账号不必多，够用就好。
+          </p>
+          <a class="arrow-link" href="/subscribe/">
+            看看订阅方式
+            <Icon name="arrow-right" size={15} />
+          </a>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <div class="copy-toast" data-copy-toast role="status" aria-live="polite" hidden></div>
+</BaseLayout>
+
+<style>
+  .login-page {
+    padding-block: clamp(2.5rem, 6vw, 5rem) clamp(3rem, 7vw, 6rem);
+  }
+
+  .login-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(22rem, 1.05fr);
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: start;
+  }
+
+  .login-copy {
+    position: sticky;
+    top: calc(var(--header-h) + 1.5rem);
+  }
+
+  .login-title {
+    margin-top: 1rem;
+    font-size: clamp(2.7rem, 6vw, 5rem);
+    line-height: 0.98;
+    letter-spacing: -0.05em;
+  }
+
+  .login-title em {
+    font-style: normal;
+    color: var(--red-strong);
+  }
+
+  .login-lede {
+    max-width: 30rem;
+    margin-top: 1.2rem;
+    color: var(--ink-2);
+    font-size: 1rem;
+    line-height: 1.9;
+  }
+
+  .login-principles {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 2.2rem;
+    border-top: 1px solid var(--ink);
+  }
+
+  .login-principle {
+    display: grid;
+    grid-template-columns: 2rem 1fr;
+    gap: 0.8rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .login-principle__index {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    color: var(--red);
+    padding-top: 0.2rem;
+  }
+
+  .login-principle h2 {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  .login-principle p {
+    margin-top: 0.35rem;
+    color: var(--ink-3);
+    font-size: 0.8rem;
+    line-height: 1.75;
+  }
+
+  .login-note {
+    display: flex;
+    gap: 0.7rem;
+    margin-top: 1.6rem;
+    padding: 1rem;
+    color: var(--ink-3);
+    font-size: 0.76rem;
+    line-height: 1.7;
+  }
+
+  .login-note svg {
+    flex-shrink: 0;
+    margin-top: 0.12rem;
+    color: var(--red);
+  }
+
+  .login-panel {
+    min-width: 0;
+  }
+
+  .login-card {
+    padding: clamp(1.3rem, 3vw, 2rem);
+  }
+
+  .login-card__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1.1rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .login-card__title {
+    margin-top: 0.5rem;
+    font-size: clamp(1.35rem, 3vw, 1.8rem);
+    letter-spacing: -0.02em;
+  }
+
+  .login-card__stamp {
+    flex-shrink: 0;
+    transform: rotate(4deg);
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.55rem;
+    padding-top: 1.2rem;
+  }
+
+  .login-card__foot {
+    margin-top: 1.2rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--rule);
+    color: var(--ink-3);
+    font-size: 0.7rem;
+    line-height: 1.7;
+  }
+
+  .login-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin: 1.4rem 0 1rem;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .login-divider::before,
+  .login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .auth-provider-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .auth-provider {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 3.6rem;
+    padding: 0.55rem 0.65rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color 0.2s var(--ease), background 0.2s var(--ease),
+      transform 0.2s var(--ease);
+  }
+
+  .auth-provider:hover {
+    border-color: var(--red);
+    background: var(--paper-raised);
+    transform: translateY(-1px);
+  }
+
+  .auth-provider__icon {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex-shrink: 0;
+    border: 1px solid var(--rule);
+    border-radius: 50%;
+    background: var(--paper-raised);
+    color: var(--ink-2);
+  }
+
+  .auth-provider__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+    min-width: 0;
+  }
+
+  .auth-provider__name {
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+
+  .auth-provider__blurb {
+    overflow: hidden;
+    color: var(--ink-3);
+    font-size: 0.64rem;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .auth-provider__state {
+    position: absolute;
+    top: 0.4rem;
+    right: 0.45rem;
+    width: 0.35rem;
+    height: 0.35rem;
+    border-radius: 50%;
+    background: var(--rule);
+  }
+
+  .auth-provider[data-configured='true'] .auth-provider__state {
+    background: var(--sage);
+  }
+
+  .auth-provider[data-configured='false'] {
+    opacity: 0.52;
+    cursor: not-allowed;
+  }
+
+  .auth-provider[data-configured='false']:hover {
+    border-color: var(--rule);
+    background: var(--paper);
+    transform: none;
+  }
+
+  .auth-provider[data-configured='false'] .auth-provider__state {
+    background: var(--red);
+  }
+
+  .auth-provider[data-configured='false']::after {
+    content: '待配置';
+    position: absolute;
+    right: 0.4rem;
+    bottom: 0.3rem;
+    font-family: var(--font-mono);
+    font-size: 0.48rem;
+    letter-spacing: 0.08em;
+    color: var(--red);
+  }
+
+  .login-aside {
+    margin-top: 1.2rem;
+    padding: 1.1rem 1.2rem;
+    border-left: 2px solid var(--red);
+    background: color-mix(in srgb, var(--paper-sunk) 60%, transparent);
+  }
+
+  .login-aside p {
+    margin-top: 0.55rem;
+    color: var(--ink-3);
+    font-size: 0.78rem;
+    line-height: 1.75;
+  }
+
+  .login-aside .arrow-link {
+    margin-top: 0.8rem;
+  }
+
+  .telegram-wrap {
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .telegram-slot {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 2.8rem;
+    margin-top: 0.5rem;
+  }
+
+  .telegram-fallback {
+    color: var(--ink-3);
+    font-size: 0.68rem;
+    line-height: 1.6;
+    text-align: center;
+  }
+
+  @media (max-width: 900px) {
+    .login-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .login-copy {
+      position: static;
+    }
+
+    .login-principles {
+      margin-top: 1.4rem;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .auth-provider-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .login-card__stamp {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  type Provider = {
+    id: string;
+    name: string;
+    kind: string;
+    configured: boolean;
+  };
+
+  const params = new URLSearchParams(window.location.search);
+  const next = params.get('next') || '';
+  const error = params.get('error') || '';
+  const statusBox = document.querySelector<HTMLElement>('[data-email-status]');
+  const form = document.querySelector<HTMLFormElement>('[data-email-form]');
+  const submit = document.querySelector<HTMLButtonElement>('[data-email-submit]');
+  const providerGrid = document.querySelector<HTMLElement>('[data-provider-grid]');
+  const telegramSlot = document.querySelector<HTMLElement>('[data-telegram-slot]');
+
+  const messages: Record<string, string> = {
+    kv_not_configured: 'SESSIONS KV 还没绑定，登录无法保存会话。',
+    email_not_configured: '邮件登录需要先配置 Resend 与环境变量。',
+    unsupported: '这个登录方式不存在或不支持。',
+    state_expired: '登录状态已过期，请重新发起。',
+    state_mismatch: '登录状态不匹配，请重新发起。',
+    missing_code: '平台没有返回授权码，请重试。',
+    magic_expired: '登录链接已过期，请重新发送。',
+    magic_invalid: '登录链接无效，请重新发送。',
+    telegram_expired: 'Telegram 登录信息已过期，请重试。',
+    telegram_signature_invalid: 'Telegram 签名校验失败，请重试。',
+    auth_not_configured: '这个登录方式还没有配置。',
+  };
+
+  const showStatus = (message: string, tone: 'error' | 'ok' | 'info' = 'info') => {
+    if (!statusBox) return;
+    statusBox.hidden = false;
+    statusBox.dataset.tone = tone === 'ok' ? 'ok' : '';
+    statusBox.textContent = message;
+  };
+
+  if (error) {
+    const base = error.replace(/_(failed|not_configured)$/, '');
+    showStatus(
+      messages[error] ||
+        (error.endsWith('_not_configured')
+          ? `${base} 登录还没有配置客户端密钥。`
+          : error.endsWith('_failed')
+            ? `${base} 登录失败，请重试。`
+            : '登录失败，请重试。'),
+      'error',
+    );
+  }
+
+  const applyNext = () => {
+    document.querySelectorAll<HTMLAnchorElement>('[data-provider-id]').forEach((link) => {
+      const id = link.dataset.providerId;
+      if (!id) return;
+      link.href = `/api/auth/${id}${next ? `?next=${encodeURIComponent(next)}` : ''}`;
+    });
+  };
+
+  applyNext();
+
+  const updateProviders = (providers: Provider[], kvReady: boolean, telegramBot = '') => {
+    providers.forEach((provider) => {
+      const card = document.querySelector<HTMLElement>(`[data-provider-id="${provider.id}"]`);
+      if (!card) return;
+      card.dataset.configured = String(provider.configured);
+      if (!provider.configured) {
+        card.setAttribute('aria-disabled', 'true');
+        card.setAttribute('tabindex', '-1');
+        card.addEventListener('click', (event) => event.preventDefault());
+      }
+    });
+
+    const telegram = providers.find((provider) => provider.id === 'telegram');
+    if (telegram?.configured && telegramSlot && telegramBot) {
+      const fallback = document.querySelector<HTMLElement>('[data-telegram-fallback]');
+      if (fallback) fallback.hidden = true;
+      telegramSlot.innerHTML = '';
+      const script = document.createElement('script');
+      script.async = true;
+      script.src = 'https://telegram.org/js/telegram-widget.js?22';
+      script.setAttribute('data-telegram-login', telegramBot);
+      script.setAttribute('data-size', 'medium');
+      script.setAttribute('data-radius', '2');
+      script.setAttribute('data-auth-url', `${window.location.origin}/api/auth/telegram`);
+      script.setAttribute('data-request-access', 'write');
+      telegramSlot.appendChild(script);
+    }
+
+    if (!kvReady) {
+      showStatus('SESSIONS KV 未绑定，登录入口可以查看，但会话不会保存。', 'error');
+    }
+
+    const email = providers.find((provider) => provider.id === 'email');
+    if (email && !email.configured) {
+      submit?.setAttribute('disabled', 'disabled');
+      if (!error && !kvReady) {
+        showStatus('邮件登录未配置：需要 RESEND_API_KEY、AUTH_EMAIL_FROM 与 SESSIONS KV。', 'info');
+      }
+    }
+  };
+
+  fetch('/api/auth/providers', { headers: { accept: 'application/json' } })
+    .then((response) => (response.ok ? response.json() : Promise.reject(new Error('not deployed'))))
+    .then((data) => updateProviders(data.providers || [], Boolean(data.kvReady), data.telegramBot || ''))
+    .catch(() => {
+      if (!error) {
+        showStatus(
+          '当前是静态预览：部署到 Cloudflare Pages 并配置环境变量后，这些入口才会真正发起登录。',
+          'info',
+        );
+      }
+    });
+
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (!submit) return;
+    const emailInput = form.querySelector<HTMLInputElement>('input[name="email"]');
+    const email = emailInput?.value.trim() || '';
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
+      showStatus('邮箱格式不正确。', 'error');
+      emailInput?.focus();
+      return;
+    }
+
+    submit.disabled = true;
+    submit.textContent = '发送中…';
+    try {
+      const response = await fetch('/api/auth/email', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ email, next }),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        showStatus(data.message || '发送失败，请稍后再试。', 'error');
+      } else {
+        showStatus(data.message || '登录链接已发送，请检查收件箱。', 'ok');
+        emailInput!.value = '';
+      }
+    } catch {
+      showStatus('网络错误，或后端还未部署。', 'error');
+    } finally {
+      submit.disabled = false;
+      submit.textContent = '发送';
+    }
+  });
+</script>

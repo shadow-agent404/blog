@@ -6,6 +6,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Icon from '../../components/Icon.astro';
 import Toc from '../../components/Toc.astro';
 import ShareLinks from '../../components/ShareLinks.astro';
+import ShareDialog from '../../components/ShareDialog.astro';
+import BookmarkButton from '../../components/BookmarkButton.astro';
 import LikeButton from '../../components/LikeButton.astro';
 import Comments from '../../components/Comments.astro';
 import ReadingAids from '../../components/ReadingAids.astro';
@@ -48,6 +50,9 @@ const reading = readingMinutes(post.body ?? '');
 
 const category = categories[post.data.category];
 const canonical = new URL(Astro.url.pathname, site.url).href;
+const rawPath = `/raw/${post.id}.md`;
+const editUrl = `${site.repoUrl}/edit/main/src/content/posts/${post.id}.md`;
+const syncTargets = site.distribution.filter((item) => item.href);
 const ogPath = fs.existsSync(`./public/og/${post.id}.png`)
   ? `/og/${post.id}.png`
   : '/og/default.png';
@@ -107,7 +112,7 @@ const breadcrumbLd = {
   lang={lang}
   jsonLd={[articleLd, breadcrumbLd]}
 >
-  <article lang={lang === 'en' ? 'en' : 'zh-CN'}>
+  <article lang={lang === 'en' ? 'en' : 'zh-CN'} data-article-slug={post.id}>
     <header class="article-head container">
       <nav class="breadcrumb" aria-label="面包屑">
         <a href="/">首页</a>
@@ -191,9 +196,80 @@ const breadcrumbLd = {
 
           <div class="article-actions">
             <LikeButton slug={post.id} />
+            <BookmarkButton slug={post.id} />
             <ShareLinks title={post.data.title} url={canonical} />
           </div>
         </footer>
+
+        <section class="publish-panel" aria-labelledby="publish-title">
+          <header class="publish-panel__head">
+            <p class="kicker">分发 / Distribute</p>
+            <h2 class="publish-panel__title" id="publish-title">把这篇带走</h2>
+            <p class="publish-panel__desc">
+              复制 Markdown 去别处继续写，下载源文件离线保存，或者直接生成一张卡片发到社交平台。
+            </p>
+          </header>
+
+          <div class="publish-actions">
+            <button class="publish-action" type="button" data-copy-md data-raw={rawPath}>
+              <span class="publish-action__icon"><Icon name="copy" size={17} /></span>
+              <span class="publish-action__body">
+                <strong>复制 Markdown</strong>
+                <small>带标题、标签与正文</small>
+              </span>
+            </button>
+
+            <a class="publish-action" href={rawPath} download={`${post.id}.md`}>
+              <span class="publish-action__icon"><Icon name="download" size={17} /></span>
+              <span class="publish-action__body">
+                <strong>下载 .md</strong>
+                <small>原始 Markdown 文件</small>
+              </span>
+            </a>
+
+            <a class="publish-action" href={rawPath} target="_blank" rel="noopener noreferrer">
+              <span class="publish-action__icon"><Icon name="external" size={17} /></span>
+              <span class="publish-action__body">
+                <strong>查看纯文本</strong>
+                <small>浏览器直接打开</small>
+              </span>
+            </a>
+
+            <a class="publish-action" href={editUrl} target="_blank" rel="noopener noreferrer">
+              <span class="publish-action__icon"><Icon name="edit" size={17} /></span>
+              <span class="publish-action__body">
+                <strong>在 GitHub 编辑</strong>
+                <small>提 PR 修正错字</small>
+              </span>
+            </a>
+
+            <button class="publish-action publish-action--accent" type="button" data-share-open>
+              <span class="publish-action__icon"><Icon name="share" size={17} /></span>
+              <span class="publish-action__body">
+                <strong>生成分享卡片</strong>
+                <small>横版 / 竖版 + 二维码</small>
+              </span>
+            </button>
+          </div>
+
+          {
+            syncTargets.length > 0 && (
+              <div class="publish-sync">
+                <span class="publish-sync__label">同步到</span>
+                <ul>
+                  {syncTargets.map((item) => (
+                    <li>
+                      <a href={item.href} target="_blank" rel="noopener noreferrer">
+                        {item.label}
+                        <span>{item.kind}</span>
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          }
+        </section>
 
         <Comments />
       </div>
@@ -278,6 +354,17 @@ const breadcrumbLd = {
       )
     }
   </article>
+
+  <ShareDialog
+    title={post.data.title}
+    url={canonical}
+    description={post.data.description}
+    tags={post.data.tags}
+    category={categoryLabel(post.data.category)}
+    date={formatDate(post.data.date, lang)}
+    author={site.author}
+    slug={post.id}
+  />
 
   <ReadingAids />
   <Mermaid />
@@ -508,6 +595,168 @@ const breadcrumbLd = {
     align-items: center;
     flex-wrap: wrap;
     gap: 0.6rem;
+  }
+
+  /* 分发面板 */
+  .publish-panel {
+    margin-top: clamp(2rem, 4vw, 3rem);
+    padding: clamp(1.2rem, 3vw, 1.8rem);
+    border: 1px solid var(--ink);
+    background: var(--paper-raised);
+  }
+
+  .publish-panel__head {
+    padding-bottom: 0.9rem;
+    border-bottom: 3px solid var(--ink);
+  }
+
+  .publish-panel__title {
+    margin-top: 0.4rem;
+    font-size: clamp(1.25rem, 2.6vw, 1.7rem);
+    letter-spacing: -0.03em;
+  }
+
+  .publish-panel__desc {
+    max-width: 40rem;
+    margin-top: 0.5rem;
+    color: var(--ink-3);
+    font-size: 0.82rem;
+    line-height: 1.75;
+  }
+
+  .publish-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+    margin-top: 1rem;
+  }
+
+  .publish-action {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    padding: 0.6rem 0.7rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--ink);
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+    transition: border-color 0.2s var(--ease), background 0.2s var(--ease),
+      transform 0.2s var(--ease);
+  }
+
+  .publish-action:hover {
+    border-color: var(--ink);
+    transform: translateY(-1px);
+  }
+
+  .publish-action__icon {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+    border: 1px solid var(--rule);
+    color: var(--ink-2);
+  }
+
+  .publish-action__body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    min-width: 0;
+  }
+
+  .publish-action__body strong {
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .publish-action__body small {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.54rem;
+    letter-spacing: 0.04em;
+  }
+
+  .publish-action--accent {
+    border-color: var(--red);
+    background: var(--red);
+    color: var(--paper-raised);
+  }
+
+  .publish-action--accent:hover {
+    border-color: var(--red-strong);
+    background: var(--red-strong);
+  }
+
+  .publish-action--accent .publish-action__icon {
+    border-color: color-mix(in srgb, var(--paper-raised) 45%, transparent);
+    color: var(--paper-raised);
+  }
+
+  .publish-action--accent .publish-action__body small {
+    color: color-mix(in srgb, var(--paper-raised) 78%, transparent);
+  }
+
+  .publish-sync {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .publish-sync__label {
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .publish-sync ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .publish-sync a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.3rem;
+    padding: 0.2rem 0.5rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    text-decoration: none;
+    transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+  }
+
+  .publish-sync a:hover {
+    border-color: var(--red);
+    color: var(--red-strong);
+  }
+
+  .publish-sync a span {
+    color: var(--ink-3);
+    font-size: 0.5rem;
+  }
+
+  @media (max-width: 620px) {
+    .publish-actions {
+      grid-template-columns: 1fr;
+    }
   }
 
   /* 专题导航 */
@@ -760,3 +1009,67 @@ const breadcrumbLd = {
     }
   }
 </style>
+
+<script>
+  import { bootAccount, recordView } from '../../lib/account-client';
+
+  const article = document.querySelector<HTMLElement>('[data-article-slug]');
+  const slug = article?.dataset.articleSlug;
+
+  if (slug) {
+    bootAccount().then(() => recordView(slug));
+  }
+
+  const copyButton = document.querySelector<HTMLButtonElement>('[data-copy-md]');
+
+  if (copyButton) {
+    const copyText = async (text: string) => {
+      if (navigator.clipboard && window.isSecureContext) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch {
+          /* 回退到 execCommand */
+        }
+      }
+
+      const area = document.createElement('textarea');
+      area.value = text;
+      area.setAttribute('readonly', '');
+      area.style.position = 'fixed';
+      area.style.top = '-9999px';
+      document.body.appendChild(area);
+      area.select();
+      let copied = false;
+      try {
+        copied = document.execCommand('copy');
+      } catch {
+        copied = false;
+      }
+      area.remove();
+      return copied;
+    };
+
+    const original = copyButton.querySelector('strong')?.textContent ?? '复制 Markdown';
+
+    copyButton.addEventListener('click', async () => {
+      const raw = copyButton.dataset.raw;
+      if (!raw) return;
+
+      try {
+        const response = await fetch(raw, { headers: { accept: 'text/markdown' } });
+        if (!response.ok) throw new Error('fetch failed');
+        const markdown = await response.text();
+        const copied = await copyText(markdown);
+        const label = copyButton.querySelector('strong');
+        if (label) label.textContent = copied ? '已复制 Markdown' : '复制失败';
+
+        window.setTimeout(() => {
+          if (label) label.textContent = original;
+        }, 2200);
+      } catch {
+        window.open(raw, '_blank', 'noopener');
+      }
+    });
+  }
+</script>

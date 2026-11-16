@@ -1,0 +1,730 @@
+---
+import Icon from './Icon.astro';
+import { buildShareTargets } from '../lib/share';
+import { site } from '../site.config';
+
+interface Props {
+  title: string;
+  url: string;
+  description?: string;
+  tags?: string[];
+  category?: string;
+  date?: string;
+  author?: string;
+  slug?: string;
+}
+
+const {
+  title,
+  url,
+  description = '',
+  tags = [],
+  category = '文章',
+  date = '',
+  author = site.author,
+  slug = 'post',
+} = Astro.props;
+
+const targets = buildShareTargets({ title, url, tags });
+const groups = ['中文', '私域', '国际', '开发者'] as const;
+const grouped = groups.map((name) => ({
+  name,
+  items: targets.filter((target) => target.group === name),
+}));
+---
+
+<dialog class="share-dialog" data-share-dialog aria-labelledby="share-dialog-title">
+  <div class="share-dialog__panel">
+    <header class="share-dialog__head">
+      <div>
+        <p class="kicker">分享 / Share</p>
+        <h2 class="share-dialog__title" id="share-dialog-title">把这一页带走</h2>
+      </div>
+      <button class="share-dialog__close" type="button" data-share-close aria-label="关闭分享">
+        <Icon name="close" size={20} />
+      </button>
+    </header>
+
+    <div class="share-dialog__body">
+      <section class="share-preview" aria-labelledby="share-preview-title">
+        <div class="share-preview__head">
+          <h3 id="share-preview-title">分享卡片</h3>
+          <div class="share-format" role="tablist" aria-label="卡片比例">
+            <button type="button" role="tab" aria-selected="true" data-share-format="landscape">
+              横版
+            </button>
+            <button type="button" role="tab" aria-selected="false" data-share-format="portrait">
+              竖版
+            </button>
+          </div>
+        </div>
+
+        <div
+          class="share-preview__canvas"
+          data-share-preview
+          data-title={title}
+          data-url={url}
+          data-description={description}
+          data-tags={JSON.stringify(tags)}
+          data-category={category}
+          data-date={date}
+          data-author={author}
+          data-slug={slug}
+          aria-live="polite"
+        >
+          <div class="share-preview__loading">正在生成卡片…</div>
+        </div>
+
+        <div class="share-preview__actions">
+          <button class="btn btn--accent btn--sm" type="button" data-share-download>
+            <Icon name="download" size={14} />
+            下载 PNG
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" data-share-native>
+            <Icon name="share" size={14} />
+            系统分享
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" data-share-copy>
+            <Icon name="copy" size={14} />
+            复制文案
+          </button>
+        </div>
+
+        <p class="share-preview__note">
+          卡片包含标题、摘要、标签与二维码。微信、小红书等没有公开分享接口的渠道，可以下载卡片后发布。
+        </p>
+      </section>
+
+      <section class="share-channels" aria-labelledby="share-channels-title">
+        <div class="share-channels__head">
+          <h3 id="share-channels-title">转发到</h3>
+          <span class="folio">{targets.length} 个渠道</span>
+        </div>
+
+        {
+          grouped.map((group) => (
+            <div class="share-group">
+              <h4 class="share-group__title">{group.name}</h4>
+              <div class="share-targets">
+                {group.items.map((target) =>
+                  target.copyOnly ? (
+                    <button
+                      class="share-target"
+                      type="button"
+                      data-share-copy-target={target.id}
+                      data-copy-mode={target.id === 'wechat' ? 'url' : 'text'}
+                      title={target.hint || target.label}
+                    >
+                      <span class="share-target__icon"><Icon name={target.icon as any} size={17} /></span>
+                      <span>{target.label}</span>
+                    </button>
+                  ) : (
+                    <a
+                      class="share-target"
+                      href={target.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      title={target.hint || `分享到 ${target.label}`}
+                    >
+                      <span class="share-target__icon"><Icon name={target.icon as any} size={17} /></span>
+                      <span>{target.label}</span>
+                    </a>
+                  ),
+                )}
+              </div>
+            </div>
+          ))
+        }
+
+        <div class="share-channels__foot">
+          <button class="btn btn--ghost btn--sm" type="button" data-share-copy-link>
+            <Icon name="link" size={14} />
+            复制文章链接
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" data-share-copy-md>
+            <Icon name="edit" size={14} />
+            复制 Markdown
+          </button>
+        </div>
+      </section>
+    </div>
+
+    <div class="share-toast" data-share-toast role="status" aria-live="polite" hidden></div>
+  </div>
+</dialog>
+
+<style>
+  .share-dialog {
+    width: min(96vw, 68rem);
+    max-height: 92vh;
+    padding: 0;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--ink);
+    box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+  }
+
+  .share-dialog::backdrop {
+    background: rgba(20, 18, 14, 0.62);
+    backdrop-filter: blur(4px);
+  }
+
+  .share-dialog__panel {
+    position: relative;
+    max-height: 92vh;
+    overflow-y: auto;
+    padding: clamp(1.1rem, 3vw, 1.8rem);
+  }
+
+  .share-dialog__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid var(--ink);
+  }
+
+  .share-dialog__title {
+    margin-top: 0.5rem;
+    font-size: clamp(1.5rem, 3.4vw, 2.2rem);
+    letter-spacing: -0.03em;
+  }
+
+  .share-dialog__close {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
+  }
+
+  .share-dialog__close:hover {
+    color: var(--red-strong);
+    border-color: var(--red);
+  }
+
+  .share-dialog__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(17rem, 0.85fr);
+    gap: clamp(1.2rem, 3vw, 2.2rem);
+    padding-top: 1.2rem;
+  }
+
+  .share-preview__head,
+  .share-channels__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.8rem;
+  }
+
+  .share-preview__head h3,
+  .share-channels__head h3 {
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  .share-format {
+    display: inline-flex;
+    border: 1px solid var(--rule);
+  }
+
+  .share-format button {
+    padding: 0.3rem 0.55rem;
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+  }
+
+  .share-format button[aria-selected='true'] {
+    background: var(--ink);
+    color: var(--paper-raised);
+  }
+
+  .share-preview__canvas {
+    display: grid;
+    place-items: center;
+    min-height: 14rem;
+    padding: 0.6rem;
+    border: 1px solid var(--rule);
+    background: var(--paper-sunk);
+  }
+
+  .share-preview__canvas canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    box-shadow: 0 6px 20px -10px rgba(0, 0, 0, 0.35);
+  }
+
+  .share-preview__loading {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+  }
+
+  .share-preview__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.8rem;
+  }
+
+  .share-preview__note {
+    margin-top: 0.7rem;
+    color: var(--ink-3);
+    font-size: 0.68rem;
+    line-height: 1.7;
+  }
+
+  .share-channels {
+    min-width: 0;
+  }
+
+  .share-group {
+    margin-top: 0.8rem;
+  }
+
+  .share-group__title {
+    margin-bottom: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.54rem;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .share-targets {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .share-target {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.42rem 0.45rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--paper-raised);
+    color: var(--ink-2);
+    font-size: 0.7rem;
+    text-decoration: none;
+    cursor: pointer;
+    text-align: left;
+    transition: border-color 0.2s var(--ease), color 0.2s var(--ease),
+      background 0.2s var(--ease);
+  }
+
+  .share-target:hover {
+    border-color: var(--red);
+    color: var(--red-strong);
+    background: var(--paper);
+  }
+
+  .share-target__icon {
+    display: inline-flex;
+    color: var(--ink-3);
+  }
+
+  .share-target:hover .share-target__icon {
+    color: var(--red);
+  }
+
+  .share-channels__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1rem;
+    padding-top: 0.8rem;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .share-toast {
+    position: sticky;
+    bottom: 0;
+    margin: 0.8rem auto 0;
+    width: fit-content;
+    padding: 0.45rem 0.9rem;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper-raised);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.08em;
+  }
+
+  @media (max-width: 860px) {
+    .share-dialog__body {
+      grid-template-columns: 1fr;
+    }
+
+    .share-targets {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 520px) {
+    .share-targets {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .share-dialog {
+      width: 100vw;
+      max-height: 100vh;
+      border: 0;
+    }
+  }
+</style>
+
+<script>
+  import qrcode from 'qrcode-generator';
+
+  type Format = 'landscape' | 'portrait';
+
+  const dialog = document.querySelector<HTMLDialogElement>('[data-share-dialog]');
+  const preview = document.querySelector<HTMLElement>('[data-share-preview]');
+  const toast = document.querySelector<HTMLElement>('[data-share-toast]');
+  let format: Format = 'landscape';
+  let canvas: HTMLCanvasElement | null = null;
+  let blob: Blob | null = null;
+  let drawing = false;
+
+  const title = preview?.dataset.title || document.title;
+  const url = preview?.dataset.url || location.href;
+  const description = preview?.dataset.description || '';
+  const category = preview?.dataset.category || '文章';
+  const date = preview?.dataset.date || '';
+  const author = preview?.dataset.author || '';
+  const slug = preview?.dataset.slug || 'post';
+  let tags: string[] = [];
+  try {
+    tags = JSON.parse(preview?.dataset.tags || '[]');
+  } catch {
+    tags = [];
+  }
+
+  const showToast = (message: string) => {
+    if (!toast) return;
+    toast.textContent = message;
+    toast.hidden = false;
+    window.clearTimeout((showToast as any).timer);
+    (showToast as any).timer = window.setTimeout(() => {
+      toast.hidden = true;
+    }, 2400);
+  };
+
+  const wrapText = (
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    maxWidth: number,
+    maxLines: number,
+  ) => {
+    const segmenter =
+      typeof Intl.Segmenter === 'function'
+        ? new Intl.Segmenter('zh', { granularity: 'word' })
+        : null;
+    const segments = segmenter
+      ? Array.from(segmenter.segment(text), (item) => item.segment)
+      : Array.from(text);
+    const lines: string[] = [];
+    let line = '';
+    let truncated = false;
+
+    for (const segment of segments) {
+      const next = line + segment;
+      if (ctx.measureText(next).width > maxWidth && line.trim()) {
+        lines.push(line.trim());
+        line = segment;
+        if (lines.length === maxLines) {
+          truncated = true;
+          break;
+        }
+      } else {
+        line = next;
+      }
+    }
+    if (lines.length < maxLines && line.trim()) lines.push(line.trim());
+
+    if (truncated && lines.length) {
+      let last = lines[lines.length - 1];
+      while (ctx.measureText(`${last}…`).width > maxWidth && last.length > 1) {
+        last = last.slice(0, -1);
+      }
+      lines[lines.length - 1] = `${last}…`;
+    }
+    return lines;
+  };
+
+  const fitText = (ctx: CanvasRenderingContext2D, text: string, maxWidth: number) => {
+    if (ctx.measureText(text).width <= maxWidth) return text;
+    let value = text;
+    while (value.length > 1 && ctx.measureText(`${value}…`).width > maxWidth) {
+      value = value.slice(0, -1);
+    }
+    return `${value}…`;
+  };
+
+  const drawQr = (
+    ctx: CanvasRenderingContext2D,
+    text: string,
+    x: number,
+    y: number,
+    size: number,
+  ) => {
+    const qr = qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    const count = qr.getModuleCount();
+    const quiet = 4;
+    const total = count + quiet * 2;
+    const cell = size / total;
+
+    ctx.fillStyle = '#fbf7ee';
+    ctx.fillRect(x, y, size, size);
+    ctx.fillStyle = '#171512';
+    for (let row = 0; row < count; row += 1) {
+      for (let column = 0; column < count; column += 1) {
+        if (qr.isDark(row, column)) {
+          ctx.fillRect(
+            x + (column + quiet) * cell,
+            y + (row + quiet) * cell,
+            Math.ceil(cell),
+            Math.ceil(cell),
+          );
+        }
+      }
+    }
+  };
+
+  const drawCard = async () => {
+    if (!preview || drawing) return;
+    drawing = true;
+    preview.innerHTML = '<div class="share-preview__loading">正在生成卡片…</div>';
+
+    if (document.fonts?.ready) await document.fonts.ready;
+
+    const portrait = format === 'portrait';
+    const width = portrait ? 1080 : 1200;
+    const height = portrait ? 1440 : 630;
+    const scale = 2;
+    const pad = portrait ? 72 : 64;
+
+    const nextCanvas = document.createElement('canvas');
+    nextCanvas.width = width * scale;
+    nextCanvas.height = height * scale;
+    const ctx = nextCanvas.getContext('2d');
+    if (!ctx) {
+      drawing = false;
+      return;
+    }
+    ctx.scale(scale, scale);
+
+    ctx.fillStyle = '#f2eadc';
+    ctx.fillRect(0, 0, width, height);
+
+    // 顶部粗线与左侧朱红书脊
+    ctx.fillStyle = '#171512';
+    ctx.fillRect(pad, pad, width - pad * 2, 4);
+    ctx.fillStyle = '#b23a24';
+    ctx.fillRect(pad, pad + 4, 8, height - pad * 2 - 4);
+
+    ctx.textBaseline = 'top';
+
+    // 栏目与期号
+    ctx.fillStyle = '#8d2a17';
+    ctx.font = '500 15px "IBM Plex Mono", monospace';
+    const kicker = `${category.toUpperCase()} / S.A — PAPER SCRAPS`;
+    ctx.fillText(kicker, pad + 28, pad + 28);
+
+    // 标题
+    const titleSize = portrait ? 70 : 54;
+    const titleLineHeight = portrait ? 84 : 62;
+    ctx.fillStyle = '#171512';
+    ctx.font = `500 ${titleSize}px "Fraunces Variable", Georgia, "Songti SC", serif`;
+    const titleLines = wrapText(ctx, title, width - pad * 2 - 110, portrait ? 5 : 3);
+    const titleTop = portrait ? 150 : 112;
+    titleLines.forEach((line, index) => {
+      ctx.fillText(line, pad + 28, titleTop + index * titleLineHeight);
+    });
+
+    // 摘要
+    const descTop = titleTop + titleLines.length * titleLineHeight + (portrait ? 30 : 18);
+    ctx.fillStyle = '#3c3831';
+    ctx.font = `400 ${portrait ? 26 : 21}px "Inter Variable", -apple-system, "PingFang SC", sans-serif`;
+    const descLines = wrapText(ctx, description, width - pad * 2 - 40, portrait ? 5 : 2);
+    descLines.forEach((line, index) => {
+      ctx.fillText(line, pad + 28, descTop + index * (portrait ? 38 : 30));
+    });
+
+    // 标签
+    const tagTop = descTop + descLines.length * (portrait ? 38 : 30) + (portrait ? 28 : 18);
+    ctx.fillStyle = '#8d2a17';
+    ctx.font = '500 14px "IBM Plex Mono", monospace';
+    const tagText = tags.slice(0, 5).map((tag) => `#${tag}`).join('   ');
+    if (tagText) ctx.fillText(fitText(ctx, tagText, width - pad * 2 - 160), pad + 28, tagTop);
+
+    // 底部：作者、日期、网址
+    const footerY = height - pad - (portrait ? 62 : 44);
+    ctx.strokeStyle = '#cdc3b1';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad + 28, footerY - 18);
+    ctx.lineTo(width - pad - 28, footerY - 18);
+    ctx.stroke();
+
+    ctx.fillStyle = '#71685a';
+    ctx.font = '500 14px "IBM Plex Mono", monospace';
+    ctx.fillText(author, pad + 28, footerY);
+    ctx.textAlign = 'right';
+    ctx.fillText(date, width - pad - 28, footerY);
+    ctx.textAlign = 'left';
+
+    const hostPath = url.replace(/^https?:\/\//, '');
+    ctx.fillStyle = '#171512';
+    ctx.font = '500 15px "IBM Plex Mono", monospace';
+    ctx.fillText(fitText(ctx, hostPath, width - pad * 2 - (portrait ? 220 : 180)), pad + 28, footerY + 24);
+
+    // 二维码
+    const qrSize = portrait ? 170 : 116;
+    const qrX = width - pad - qrSize - 12;
+    const qrY = height - pad - qrSize - 8;
+    drawQr(ctx, url, qrX, qrY, qrSize);
+    if (!portrait) {
+      ctx.fillStyle = '#71685a';
+      ctx.font = '500 10px "IBM Plex Mono", monospace';
+      ctx.fillText('扫码阅读', qrX, qrY - 14);
+    }
+
+    preview.replaceChildren(nextCanvas);
+    canvas = nextCanvas;
+    nextCanvas.toBlob((result) => {
+      blob = result;
+      drawing = false;
+    }, 'image/png');
+  };
+
+  const openDialog = () => {
+    if (!dialog) return;
+    if (!dialog.open) dialog.showModal();
+    drawCard();
+  };
+
+  document.addEventListener('click', (event) => {
+    const trigger = (event.target as HTMLElement).closest('[data-share-open]');
+    if (trigger) {
+      event.preventDefault();
+      openDialog();
+    }
+  });
+
+  dialog?.addEventListener('click', (event) => {
+    if (event.target === dialog) dialog.close();
+  });
+
+  document.querySelector('[data-share-close]')?.addEventListener('click', () => dialog?.close());
+
+  document.querySelectorAll<HTMLButtonElement>('[data-share-format]').forEach((button) => {
+    button.addEventListener('click', () => {
+      format = button.dataset.shareFormat === 'portrait' ? 'portrait' : 'landscape';
+      document.querySelectorAll<HTMLButtonElement>('[data-share-format]').forEach((item) => {
+        item.setAttribute('aria-selected', String(item === button));
+      });
+      drawCard();
+    });
+  });
+
+  const download = () => {
+    if (!canvas) return;
+    const link = document.createElement('a');
+    link.download = `share-${slug}-${format}.png`;
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+  };
+
+  document.querySelector('[data-share-download]')?.addEventListener('click', download);
+
+  document.querySelector('[data-share-native]')?.addEventListener('click', async () => {
+    if (!blob) {
+      download();
+      return;
+    }
+    const file = new File([blob], `share-${slug}-${format}.png`, { type: 'image/png' });
+    const shareData: ShareData = { files: [file], title, text: url };
+    if (navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+      } catch {
+        // 用户取消分享时不做事。
+      }
+    } else {
+      download();
+    }
+  });
+
+  const copy = async (text: string, message: string) => {
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(text);
+        showToast(message);
+        return;
+      } catch {
+        /* 回退到 execCommand */
+      }
+    }
+
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.setAttribute('readonly', '');
+    area.style.position = 'fixed';
+    area.style.top = '-9999px';
+    document.body.appendChild(area);
+    area.select();
+
+    let copied = false;
+    try {
+      copied = document.execCommand('copy');
+    } catch {
+      copied = false;
+    }
+    area.remove();
+
+    showToast(copied ? message : '复制失败，请手动选择内容');
+  };
+
+  document.querySelector('[data-share-copy]')?.addEventListener('click', () => {
+    copy(`${title}\n${url}`, '文案已复制');
+  });
+
+  document.querySelector('[data-share-copy-link]')?.addEventListener('click', () => {
+    copy(url, '链接已复制');
+  });
+
+  document.querySelector('[data-share-copy-md]')?.addEventListener('click', () => {
+    copy(`[${title}](${url})`, 'Markdown 已复制');
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-share-copy-target]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const mode = button.dataset.copyMode === 'url' ? 'url' : 'text';
+      copy(mode === 'url' ? url : `${title}\n${url}`, mode === 'url' ? '链接已复制，去微信粘贴' : '文案已复制');
+    });
+  });
+</script>

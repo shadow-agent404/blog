@@ -15,6 +15,17 @@ const weiboHref = `https://service.weibo.com/share/share.php?title=${encodeURICo
 
 <div class:list={['share', { 'share--vertical': vertical }]} data-share-root>
   <button
+    class="share__btn share__btn--card"
+    type="button"
+    data-share-open
+    aria-label="生成分享卡片"
+    title="生成分享卡片"
+  >
+    <Icon name="share" size={17} />
+    <span class="share__label">分享卡片</span>
+  </button>
+
+  <button
     class="share__btn"
     type="button"
     data-copy-link
@@ -26,18 +37,6 @@ const weiboHref = `https://service.weibo.com/share/share.php?title=${encodeURICo
     <span class="share__label" data-copy-label>复制链接</span>
   </button>
 
-  <button
-    class="share__btn"
-    type="button"
-    data-native-share
-    aria-label="系统分享"
-    title="分享"
-    hidden
-  >
-    <Icon name="share" size={18} />
-    <span class="share__label">分享</span>
-  </button>
-
   <a
     class="share__btn"
     href={xHref}
@@ -46,7 +45,7 @@ const weiboHref = `https://service.weibo.com/share/share.php?title=${encodeURICo
     aria-label="分享到 X（在新窗口打开）"
     title="分享到 X"
   >
-    <Icon name="x" size={16} />
+    <Icon name="x" size={15} />
     <span class="share__label">X</span>
   </a>
 
@@ -61,6 +60,17 @@ const weiboHref = `https://service.weibo.com/share/share.php?title=${encodeURICo
     <span class="share__weibo" aria-hidden="true">微</span>
     <span class="share__label">微博</span>
   </a>
+
+  <button
+    class="share__btn"
+    type="button"
+    data-share-open
+    aria-label="更多转发渠道"
+    title="更多转发渠道"
+  >
+    <Icon name="more" size={17} />
+    <span class="share__label">更多</span>
+  </button>
 </div>
 
 <style>
@@ -68,30 +78,45 @@ const weiboHref = `https://service.weibo.com/share/share.php?title=${encodeURICo
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.4rem;
   }
 
   .share__btn {
     display: inline-flex;
     align-items: center;
-    gap: 0.45rem;
+    gap: 0.42rem;
     min-height: 2.35rem;
-    padding: 0.35rem 0.7rem;
+    padding: 0.35rem 0.72rem;
     border: 1px solid var(--rule);
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
     background: var(--paper-raised);
     color: var(--ink-2);
-    font-size: 0.72rem;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
     text-decoration: none;
-    transition: color 0.25s var(--ease), border-color 0.25s var(--ease),
-      background-color 0.25s var(--ease), transform 0.25s var(--ease);
+    cursor: pointer;
+    transition: color 0.22s var(--ease), border-color 0.22s var(--ease),
+      background-color 0.22s var(--ease), transform 0.22s var(--ease);
   }
 
   .share__btn:hover {
-    color: var(--blue-strong);
-    border-color: var(--blue);
-    background: var(--blue-wash);
+    color: var(--red-strong);
+    border-color: var(--red);
+    background: var(--paper);
     transform: translateY(-1px);
+  }
+
+  .share__btn--card {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper-raised);
+  }
+
+  .share__btn--card:hover {
+    border-color: var(--red);
+    background: var(--red);
+    color: var(--paper-raised);
   }
 
   .share__btn[hidden] {
@@ -99,7 +124,7 @@ const weiboHref = `https://service.weibo.com/share/share.php?title=${encodeURICo
   }
 
   .share__icon--done {
-    color: var(--sage);
+    color: var(--green, #4a6b3f);
   }
 
   .share__weibo {
@@ -107,8 +132,7 @@ const weiboHref = `https://service.weibo.com/share/share.php?title=${encodeURICo
     place-items: center;
     width: 1.05rem;
     height: 1.05rem;
-    border-radius: 50%;
-    background: var(--clay);
+    background: var(--red);
     color: var(--paper-raised);
     font-size: 0.56rem;
     line-height: 1;
@@ -117,24 +141,22 @@ const weiboHref = `https://service.weibo.com/share/share.php?title=${encodeURICo
   .share--vertical {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.5rem;
+    gap: 0.42rem;
     position: sticky;
     top: calc(var(--header-h) + 2rem);
   }
 
   .share--vertical .share__btn {
     flex-direction: column;
-    gap: 0.15rem;
-    width: 3.1rem;
-    min-height: 3.1rem;
-    padding: 0.45rem 0;
-    border-radius: 9px;
+    gap: 0.18rem;
+    width: 3.2rem;
+    min-height: 3.2rem;
+    padding: 0.5rem 0;
   }
 
   .share--vertical .share__label {
-    font-size: 0.55rem;
-    font-family: var(--font-mono);
-    letter-spacing: 0.04em;
+    font-size: 0.54rem;
+    letter-spacing: 0.03em;
   }
 
   @media (max-width: 760px) {
@@ -206,47 +228,59 @@ const weiboHref = `https://service.weibo.com/share/share.php?title=${encodeURICo
     }, 2400);
   };
 
-  document.querySelectorAll<HTMLElement>('[data-share-root]').forEach((root) => {
-    const copyButton = root.querySelector<HTMLButtonElement>('[data-copy-link]');
-    const nativeButton = root.querySelector<HTMLButtonElement>('[data-native-share]');
-    const copyIcon = root.querySelector<HTMLElement>('[data-copy-icon]');
-    const doneIcon = root.querySelector<HTMLElement>('.share__icon--done');
+  const scope = window as unknown as { __saShareLinksBound?: boolean };
 
-    if (nativeButton && typeof navigator.share === 'function') {
-      nativeButton.hidden = false;
-      nativeButton.addEventListener('click', async () => {
+  if (!scope.__saShareLinksBound) {
+    scope.__saShareLinksBound = true;
+
+    // 系统分享按钮只在支持时出现，避免 Safari 之外显示无效入口。
+    document.querySelectorAll<HTMLElement>('[data-share-root]').forEach((root) => {
+      const nativeButton = root.querySelector<HTMLButtonElement>('[data-native-share]');
+      if (nativeButton && typeof navigator.share === 'function') {
+        nativeButton.hidden = false;
+      }
+    });
+
+    document.addEventListener('click', async (event) => {
+      const target = event.target as HTMLElement;
+      const copyButton = target.closest<HTMLButtonElement>('[data-copy-link]');
+      const nativeButton = target.closest<HTMLButtonElement>('[data-native-share]');
+
+      if (nativeButton) {
         try {
-          await navigator.share({
-            title: document.title,
-            url: window.location.href,
-          });
+          await navigator.share({ title: document.title, url: window.location.href });
         } catch {
           /* 用户取消分享 */
         }
-      });
-    }
+        return;
+      }
 
-    copyButton?.addEventListener('click', async () => {
+      if (!copyButton) return;
+
       const copied = await copyText(window.location.href);
 
-      if (copied) {
-        showToast('链接已复制');
-        if (copyIcon) copyIcon.hidden = true;
-        if (doneIcon) doneIcon.hidden = false;
-        const label = copyButton.querySelector<HTMLElement>('[data-copy-label]');
-        const original = label?.textContent ?? '';
-        if (label) label.textContent = '已复制';
-        copyButton.setAttribute('aria-label', '链接已复制');
-
-        window.setTimeout(() => {
-          if (copyIcon) copyIcon.hidden = false;
-          if (doneIcon) doneIcon.hidden = true;
-          if (label) label.textContent = original;
-          copyButton.setAttribute('aria-label', '复制本文链接');
-        }, 2000);
-      } else {
+      if (!copied) {
         showToast('复制失败，请手动选择地址栏链接');
+        return;
       }
+
+      showToast('链接已复制');
+      const copyIcon = copyButton.querySelector<HTMLElement>('[data-copy-icon]');
+      const doneIcon = copyButton.querySelector<HTMLElement>('.share__icon--done');
+      const label = copyButton.querySelector<HTMLElement>('[data-copy-label]');
+      const original = label?.textContent ?? '复制链接';
+
+      if (copyIcon) copyIcon.hidden = true;
+      if (doneIcon) doneIcon.hidden = false;
+      if (label) label.textContent = '已复制';
+      copyButton.setAttribute('aria-label', '链接已复制');
+
+      window.setTimeout(() => {
+        if (copyIcon) copyIcon.hidden = false;
+        if (doneIcon) doneIcon.hidden = true;
+        if (label) label.textContent = original;
+        copyButton.setAttribute('aria-label', '复制本文链接');
+      }, 2000);
     });
-  });
+  }
 </script>

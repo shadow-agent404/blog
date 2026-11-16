@@ -1,0 +1,841 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+
+const year = new Date().getFullYear();
+---
+
+<BaseLayout
+  title="账号"
+  description="登录后的收藏、阅读记录、点赞同步与订阅偏好。"
+  noIndex
+>
+  <section class="account-page">
+    <div class="container">
+      <header class="account-head">
+        <div>
+          <p class="kicker">账号 / Account</p>
+          <h1 class="account-title">你的阅读桌面</h1>
+          <p class="account-lede">
+            收藏、阅读记录、点赞和订阅偏好都放在这里。只登录，不注册，不设密码。
+          </p>
+        </div>
+        <div class="account-head__actions">
+          <a class="btn btn--ghost btn--sm" href="/subscribe/">
+            <Icon name="rss" size={14} />
+            订阅方式
+          </a>
+          <a class="btn btn--ghost btn--sm" href="/login/">换一种方式登录</a>
+        </div>
+      </header>
+
+      <div class="notice account-welcome" data-welcome hidden>
+        登录成功。下面是你在这个站点的阅读记录与收藏。
+      </div>
+
+      <div class="account-guest" data-account-guest>
+        <div class="account-gate paper">
+          <span class="stamp account-gate__stamp" aria-hidden="true">SIGN<br />IN</span>
+          <div class="account-gate__copy">
+            <p class="eyebrow">尚未登录</p>
+            <h2>登录后，这里会记住你读到哪。</h2>
+            <p>
+              支持 GitHub、Modrinth、Discord、Google、Spotify、Mastodon、GitLab、
+              Codeberg、Hugging Face、Reddit、Telegram 与邮箱登录。
+            </p>
+            <div class="account-gate__actions">
+              <a class="btn btn--accent" href="/login/?next=/account/">
+                <Icon name="user" size={15} />
+                选择登录方式
+              </a>
+              <a class="btn btn--ghost" href="/subscribe/">先看订阅</a>
+            </div>
+            <p class="account-gate__note">
+              未登录也可以在本机收藏和记录阅读，数据只存在当前浏览器。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="account-member" data-account-member hidden>
+        <section class="account-profile paper" aria-labelledby="profile-title">
+          <div class="account-profile__avatar" data-user-avatar aria-hidden="true"></div>
+          <div class="account-profile__body">
+            <p class="eyebrow" id="profile-title">当前身份</p>
+            <h2 class="account-profile__name" data-user-name>—</h2>
+            <p class="account-profile__meta">
+              <span data-user-provider>—</span>
+              <span class="account-profile__dot" aria-hidden="true">·</span>
+              <span data-user-email>—</span>
+            </p>
+            <a class="link-underline account-profile__link" data-user-link href="#" hidden>
+              查看公开主页
+            </a>
+          </div>
+          <div class="account-profile__actions">
+            <a class="btn btn--ghost btn--sm" href="/login/">切换登录</a>
+            <button class="btn btn--ghost btn--sm" type="button" data-logout>
+              <Icon name="logout" size={14} />
+              退出
+            </button>
+          </div>
+        </section>
+
+        <div class="account-stats" aria-label="账号统计">
+          <div class="account-stat">
+            <span class="account-stat__value" data-stat-bookmarks>0</span>
+            <span class="account-stat__label">收藏</span>
+          </div>
+          <div class="account-stat">
+            <span class="account-stat__value" data-stat-history>0</span>
+            <span class="account-stat__label">最近阅读</span>
+          </div>
+          <div class="account-stat">
+            <span class="account-stat__value" data-stat-likes>0</span>
+            <span class="account-stat__label">点赞</span>
+          </div>
+        </div>
+
+        <div class="account-columns">
+          <div class="account-main">
+            <section class="account-section paper" aria-labelledby="bookmarks-title">
+              <div class="account-section__head">
+                <h2 id="bookmarks-title">收藏</h2>
+                <span class="folio" data-bookmarks-count>0 篇</span>
+              </div>
+              <ul class="account-list" data-bookmark-list></ul>
+              <p class="account-empty" data-bookmark-empty hidden>
+                还没有收藏。文章页右上角的书签按钮会把文章放到这里。
+              </p>
+            </section>
+
+            <section class="account-section paper" aria-labelledby="history-title">
+              <div class="account-section__head">
+                <h2 id="history-title">阅读记录</h2>
+                <span class="folio" data-history-count>0 条</span>
+              </div>
+              <ul class="account-list" data-history-list></ul>
+              <p class="account-empty" data-history-empty hidden>
+                还没有阅读记录。打开一篇文章就会自动记下。
+              </p>
+            </section>
+
+            <section class="account-section paper" aria-labelledby="likes-title">
+              <div class="account-section__head">
+                <h2 id="likes-title">点赞</h2>
+                <span class="folio" data-likes-count>0 篇</span>
+              </div>
+              <ul class="account-list" data-likes-list></ul>
+              <p class="account-empty" data-likes-empty hidden>
+                还没有点赞。点赞会跟着账号走，换设备也在。
+              </p>
+            </section>
+          </div>
+
+          <aside class="account-side">
+            <section class="account-section paper" aria-labelledby="prefs-title">
+              <div class="account-section__head">
+                <h2 id="prefs-title">订阅偏好</h2>
+                <span class="folio" data-prefs-state>已保存</span>
+              </div>
+              <form class="account-prefs" data-prefs-form>
+                <label class="pref-row">
+                  <input type="checkbox" name="rss" />
+                  <span>
+                    <strong>RSS 更新</strong>
+                    <small>订阅源始终公开，不需要登录。</small>
+                  </span>
+                </label>
+                <label class="pref-row">
+                  <input type="checkbox" name="email" />
+                  <span>
+                    <strong>邮件提醒</strong>
+                    <small>需要站点配置 Resend 后才能发送。</small>
+                  </span>
+                </label>
+                <label class="pref-row">
+                  <input type="checkbox" name="telegram" />
+                  <span>
+                    <strong>Telegram 提醒</strong>
+                    <small>需要配置机器人后才能发送。</small>
+                  </span>
+                </label>
+                <label class="pref-row pref-row--select">
+                  <span>
+                    <strong>摘要频率</strong>
+                    <small>决定提醒的节奏。</small>
+                  </span>
+                  <select class="input" name="digest">
+                    <option value="weekly">每周</option>
+                    <option value="instant">有新文章就提醒</option>
+                    <option value="off">关闭</option>
+                  </select>
+                </label>
+              </form>
+            </section>
+
+            <section class="account-section paper" aria-labelledby="identity-title">
+              <div class="account-section__head">
+                <h2 id="identity-title">评论身份</h2>
+                <span class="folio">Giscus</span>
+              </div>
+              <p class="account-aside-text">
+                文章评论区由 Giscus 提供，身份来自 GitHub。这个账号页负责收藏、阅读记录、
+                点赞与订阅偏好，两套身份可以同时使用。
+              </p>
+              <a class="arrow-link" href="/about/">
+                了解本站
+                <Icon name="arrow-right" size={15} />
+              </a>
+            </section>
+
+            <section class="account-section account-security" aria-labelledby="security-title">
+              <div class="account-section__head">
+                <h2 id="security-title">安全</h2>
+                <Icon name="shield" size={16} />
+              </div>
+              <p class="account-aside-text">
+                本站不保存密码。退出登录只会删除当前会话，不会注销你在 GitHub、Modrinth
+                等平台的账号。
+              </p>
+              <button class="btn btn--ghost btn--wide" type="button" data-logout>
+                <Icon name="logout" size={14} />
+                退出登录
+              </button>
+            </section>
+          </aside>
+        </div>
+      </div>
+
+      <p class="account-foot">© {year} S.A · 数据保存在当前浏览器或 Cloudflare KV。</p>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .account-page {
+    padding-block: clamp(2.5rem, 6vw, 5rem) clamp(3rem, 7vw, 6rem);
+  }
+
+  .account-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2rem;
+    padding-bottom: 1.3rem;
+    border-bottom: 3px solid var(--ink);
+  }
+
+  .account-title {
+    margin-top: 0.8rem;
+    font-size: clamp(2.2rem, 5vw, 3.8rem);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+
+  .account-lede {
+    max-width: 34rem;
+    margin-top: 0.9rem;
+    color: var(--ink-3);
+    font-size: 0.9rem;
+    line-height: 1.85;
+  }
+
+  .account-head__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    flex-shrink: 0;
+  }
+
+  .account-welcome {
+    margin-top: 1rem;
+    border-left-color: var(--sage);
+  }
+
+  .account-guest {
+    margin-top: 1.6rem;
+  }
+
+  .account-gate {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(1.2rem, 4vw, 3rem);
+    padding: clamp(1.5rem, 4vw, 2.6rem);
+  }
+
+  .account-gate__stamp {
+    flex-shrink: 0;
+    transform: rotate(-3deg);
+  }
+
+  .account-gate h2 {
+    margin-top: 0.55rem;
+    font-size: clamp(1.5rem, 3.4vw, 2.2rem);
+    line-height: 1.2;
+  }
+
+  .account-gate p {
+    max-width: 36rem;
+    margin-top: 0.7rem;
+    color: var(--ink-3);
+    font-size: 0.86rem;
+    line-height: 1.8;
+  }
+
+  .account-gate__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1.2rem;
+  }
+
+  .account-gate__note {
+    font-family: var(--font-mono);
+    font-size: 0.62rem !important;
+    letter-spacing: 0.04em;
+  }
+
+  .account-member {
+    margin-top: 1.6rem;
+  }
+
+  .account-profile {
+    display: flex;
+    align-items: center;
+    gap: 1.1rem;
+    padding: 1.1rem 1.2rem;
+  }
+
+  .account-profile__avatar {
+    display: grid;
+    place-items: center;
+    width: 3.6rem;
+    height: 3.6rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 50%;
+    border: 1px solid var(--rule);
+    background: var(--paper-sunk);
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    color: var(--red);
+  }
+
+  .account-profile__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .account-profile__body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .account-profile__name {
+    margin-top: 0.25rem;
+    font-size: 1.45rem;
+    letter-spacing: -0.02em;
+  }
+
+  .account-profile__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin-top: 0.3rem;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.04em;
+  }
+
+  .account-profile__dot {
+    opacity: 0.6;
+  }
+
+  .account-profile__link {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.72rem;
+  }
+
+  .account-profile__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    flex-shrink: 0;
+  }
+
+  .account-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--rule);
+    border-top: 0;
+    background: var(--paper-raised);
+  }
+
+  .account-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.9rem 1.2rem;
+    border-right: 1px solid var(--rule);
+  }
+
+  .account-stat:last-child {
+    border-right: 0;
+  }
+
+  .account-stat__value {
+    font-family: var(--font-display);
+    font-size: 1.9rem;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: var(--red);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .account-stat__label {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .account-columns {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(17rem, 0.65fr);
+    gap: 1.2rem;
+    margin-top: 1.2rem;
+    align-items: start;
+  }
+
+  .account-main,
+  .account-side {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+    min-width: 0;
+  }
+
+  .account-section {
+    padding: 1.1rem 1.2rem 1.2rem;
+  }
+
+  .account-section__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .account-section__head h2 {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .account-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .account-list__item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px dashed var(--rule-soft);
+  }
+
+  .account-list__item:last-child {
+    border-bottom: 0;
+  }
+
+  .account-list__main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .account-list__title {
+    display: block;
+    color: var(--ink);
+    font-size: 0.86rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .account-list__title:hover {
+    color: var(--red-strong);
+  }
+
+  .account-list__meta {
+    display: block;
+    margin-top: 0.15rem;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+  }
+
+  .account-list__action {
+    flex-shrink: 0;
+    border: 0;
+    background: transparent;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .account-list__action:hover {
+    color: var(--red);
+  }
+
+  .account-empty {
+    padding: 0.8rem 0 0.2rem;
+    color: var(--ink-3);
+    font-size: 0.76rem;
+    line-height: 1.7;
+  }
+
+  .account-prefs {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-top: 0.3rem;
+  }
+
+  .pref-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 0.6rem 0;
+    border-bottom: 1px dashed var(--rule-soft);
+    cursor: pointer;
+  }
+
+  .pref-row:last-child {
+    border-bottom: 0;
+  }
+
+  .pref-row input[type='checkbox'] {
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.12rem;
+    accent-color: var(--red);
+    flex-shrink: 0;
+  }
+
+  .pref-row strong {
+    display: block;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .pref-row small {
+    display: block;
+    margin-top: 0.12rem;
+    color: var(--ink-3);
+    font-size: 0.66rem;
+    line-height: 1.5;
+  }
+
+  .pref-row--select {
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .pref-row--select .input {
+    min-height: 2.1rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.76rem;
+  }
+
+  .account-aside-text {
+    margin-top: 0.6rem;
+    color: var(--ink-3);
+    font-size: 0.76rem;
+    line-height: 1.75;
+  }
+
+  .account-section .arrow-link {
+    margin-top: 0.8rem;
+    font-size: 0.6rem;
+  }
+
+  .account-security {
+    border: 1px dashed var(--rule);
+    background: transparent;
+  }
+
+  .account-security .btn {
+    margin-top: 0.9rem;
+  }
+
+  .account-foot {
+    margin-top: 2.5rem;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+  }
+
+  @media (max-width: 900px) {
+    .account-columns {
+      grid-template-columns: 1fr;
+    }
+
+    .account-head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    .account-profile {
+      flex-wrap: wrap;
+    }
+
+    .account-profile__actions {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .account-gate {
+      flex-direction: column;
+    }
+
+    .account-gate__stamp {
+      display: none;
+    }
+
+    .account-stats {
+      grid-template-columns: 1fr;
+    }
+
+    .account-stat {
+      border-right: 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .account-stat:last-child {
+      border-bottom: 0;
+    }
+  }
+</style>
+
+<script>
+  import { bootAccount, logout, savePrefs, subscribeAccount, toggleBookmark } from '../lib/account-client';
+  import type { AccountData } from '../lib/account-client';
+
+  type PostMeta = {
+    slug: string;
+    title: string;
+    description: string;
+    date: string;
+    category: string;
+    tags: string[];
+  };
+
+  const guestBox = document.querySelector<HTMLElement>('[data-account-guest]');
+  const memberBox = document.querySelector<HTMLElement>('[data-account-member]');
+  const welcome = document.querySelector<HTMLElement>('[data-welcome]');
+  const avatar = document.querySelector<HTMLElement>('[data-user-avatar]');
+  const name = document.querySelector<HTMLElement>('[data-user-name]');
+  const provider = document.querySelector<HTMLElement>('[data-user-provider]');
+  const email = document.querySelector<HTMLElement>('[data-user-email]');
+  const profileLink = document.querySelector<HTMLAnchorElement>('[data-user-link]');
+  const prefsForm = document.querySelector<HTMLFormElement>('[data-prefs-form]');
+  const prefsState = document.querySelector<HTMLElement>('[data-prefs-state]');
+
+  let posts = new Map<string, PostMeta>();
+  let ready = false;
+
+  const escapeHtml = (value: string) =>
+    value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+
+  const formatDate = (value: string | number) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return new Intl.DateTimeFormat('zh-CN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(date);
+  };
+
+  const postHref = (slug: string) => `/blog/${slug}/`;
+
+  const renderList = (
+    list: HTMLElement | null,
+    slugs: string[],
+    empty: HTMLElement | null,
+    options: { timestamps?: Record<string, number>; removable?: boolean } = {},
+  ) => {
+    if (!list) return;
+    const valid = slugs.filter((slug) => posts.has(slug));
+    list.innerHTML = valid
+      .map((slug) => {
+        const post = posts.get(slug)!;
+        const at = options.timestamps?.[slug];
+        const meta = at ? `阅读于 ${formatDate(at)}` : `${formatDate(post.date)} · ${post.category}`;
+        return `
+          <li class="account-list__item">
+            <span class="account-list__main">
+              <a class="account-list__title" href="${postHref(slug)}">${escapeHtml(post.title)}</a>
+              <span class="account-list__meta">${escapeHtml(meta)}</span>
+            </span>
+            ${
+              options.removable
+                ? `<button class="account-list__action" type="button" data-remove-bookmark="${escapeHtml(slug)}">移除</button>`
+                : ''
+            }
+          </li>
+        `;
+      })
+      .join('');
+
+    if (empty) empty.hidden = valid.length > 0;
+  };
+
+  const render = (state: AccountData) => {
+    if (!ready) return;
+    const loggedIn = Boolean(state.user);
+
+    if (guestBox) guestBox.hidden = loggedIn;
+    if (memberBox) memberBox.hidden = !loggedIn;
+    if (welcome) welcome.hidden = !(loggedIn && new URLSearchParams(location.search).get('welcome'));
+
+    if (!state.user) {
+      renderList(
+        document.querySelector('[data-bookmark-list]'),
+        state.bookmarks,
+        document.querySelector('[data-bookmark-empty]'),
+        { removable: false },
+      );
+      return;
+    }
+
+    const user = state.user;
+    if (avatar) {
+      avatar.innerHTML = user.avatar
+        ? `<img src="${escapeHtml(user.avatar)}" alt="" loading="lazy" referrerpolicy="no-referrer" />`
+        : escapeHtml(user.name.slice(0, 1).toUpperCase());
+    }
+    if (name) name.textContent = user.name;
+    if (provider) provider.textContent = user.providerName;
+    if (email) email.textContent = user.email || '未提供邮箱';
+    if (profileLink) {
+      if (user.url) {
+        profileLink.href = user.url;
+        profileLink.hidden = false;
+      } else {
+        profileLink.hidden = true;
+      }
+    }
+
+    const bookmarkCount = state.bookmarks.length;
+    const historyCount = state.history.length;
+    const likeCount = state.likes.length;
+    document.querySelector('[data-stat-bookmarks]')!.textContent = String(bookmarkCount);
+    document.querySelector('[data-stat-history]')!.textContent = String(historyCount);
+    document.querySelector('[data-stat-likes]')!.textContent = String(likeCount);
+    document.querySelector('[data-bookmarks-count]')!.textContent = `${bookmarkCount} 篇`;
+    document.querySelector('[data-history-count]')!.textContent = `${historyCount} 条`;
+    document.querySelector('[data-likes-count]')!.textContent = `${likeCount} 篇`;
+
+    const timestamps = Object.fromEntries(state.history.map((entry) => [entry.slug, entry.at]));
+
+    renderList(
+      document.querySelector('[data-bookmark-list]'),
+      state.bookmarks,
+      document.querySelector('[data-bookmark-empty]'),
+      { removable: true },
+    );
+    renderList(
+      document.querySelector('[data-history-list]'),
+      state.history.map((entry) => entry.slug),
+      document.querySelector('[data-history-empty]'),
+      { timestamps },
+    );
+    renderList(
+      document.querySelector('[data-likes-list]'),
+      state.likes,
+      document.querySelector('[data-likes-empty]'),
+    );
+
+    if (prefsForm) {
+      const rss = prefsForm.querySelector<HTMLInputElement>('input[name="rss"]');
+      const mail = prefsForm.querySelector<HTMLInputElement>('input[name="email"]');
+      const telegram = prefsForm.querySelector<HTMLInputElement>('input[name="telegram"]');
+      const digest = prefsForm.querySelector<HTMLSelectElement>('select[name="digest"]');
+      if (rss) rss.checked = state.prefs.rss;
+      if (mail) mail.checked = state.prefs.email;
+      if (telegram) telegram.checked = state.prefs.telegram;
+      if (digest) digest.value = state.prefs.digest;
+    }
+  };
+
+  const loadPosts = fetch('/search-index.json')
+    .then((response) => (response.ok ? response.json() : []))
+    .then((docs: PostMeta[]) => {
+      posts = new Map(docs.map((doc) => [doc.slug, doc]));
+      ready = true;
+    })
+    .catch(() => {
+      ready = true;
+    });
+
+  Promise.all([loadPosts, bootAccount()]).then(() => {
+    subscribeAccount(render);
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-logout]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      button.disabled = true;
+      await logout();
+      location.href = '/';
+    });
+  });
+
+  document.addEventListener('click', async (event) => {
+    const target = event.target as HTMLElement;
+    const remove = target.closest<HTMLButtonElement>('[data-remove-bookmark]');
+    if (!remove) return;
+    const slug = remove.dataset.removeBookmark;
+    if (!slug) return;
+    remove.disabled = true;
+    await toggleBookmark(slug);
+  });
+
+  prefsForm?.addEventListener('change', async () => {
+    const data = new FormData(prefsForm);
+    if (prefsState) prefsState.textContent = '保存中…';
+    await savePrefs({
+      rss: data.get('rss') === 'on',
+      email: data.get('email') === 'on',
+      telegram: data.get('telegram') === 'on',
+      digest: (data.get('digest') as 'weekly' | 'instant' | 'off') || 'weekly',
+    });
+    if (prefsState) {
+      prefsState.textContent = '已保存';
+      window.setTimeout(() => {
+        if (prefsState) prefsState.textContent = '已保存';
+      }, 900);
+    }
+  });
+</script>

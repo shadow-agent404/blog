@@ -9,3 +9,21 @@
 
 /og/*
   Cache-Control: public, max-age=86400
+
+/raw/*
+  Content-Type: text/markdown; charset=utf-8
+  Content-Disposition: inline
+  Cache-Control: public, max-age=3600
+
+/atom.xml
+  Content-Type: application/atom+xml; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/feed.json
+  Content-Type: application/feed+json; charset=utf-8
+  Cache-Control: public, max-age=3600
+
+/rss.xml
+  Content-Type: application/rss+xml; charset=utf-8
+  Cache-Control: public, max-age=3600
+

@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import ThemeToggle from './ThemeToggle.astro';
+import AccountButton from './AccountButton.astro';
 import { site } from '../site.config';
 
 const path = Astro.url.pathname;
@@ -13,9 +14,26 @@ const navItems = [
 ];
 
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+const now = new Date();
+const issue = String(now.getMonth() + 1).padStart(2, '0');
+const dateLabel = new Intl.DateTimeFormat('zh-CN', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+}).format(now);
 ---
 
 <header class="site-header">
+  <div class="dispatch">
+    <div class="container dispatch__inner">
+      <span>S.A / 独立出版 · Vol. {now.getFullYear()} — {issue}</span>
+      <span class="dispatch__right">
+        <span>{dateLabel}</span>
+        <a href="/rss.xml" class="dispatch__feed">RSS 直达</a>
+      </span>
+    </div>
+  </div>
+
   <div class="container header-inner">
     <a class="brand" href="/" aria-label={`${site.name} 首页`}>
       <span class="brand-mark" aria-hidden="true">S</span>
@@ -36,10 +54,14 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     </nav>
 
     <div class="header-actions">
-      <a class="search-link" href="/search/" aria-label="搜索文章">
+      <a class="icon-link" href="/search/" aria-label="搜索文章" title="搜索">
         <Icon name="search" size={17} />
-        <span class="search-text">搜索</span>
       </a>
+      <a class="subscribe-link" href="/subscribe/">
+        <Icon name="rss" size={15} />
+        <span>订阅</span>
+      </a>
+      <AccountButton />
       <ThemeToggle />
       <button
         class="menu-toggle"
@@ -66,6 +88,14 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
             </a>
           ))
         }
+        <a href="/subscribe/">
+          <span>订阅与分发</span>
+          <span class="mobile-nav__en">Subscribe</span>
+        </a>
+        <a href="/account/">
+          <span>账号与收藏</span>
+          <span class="mobile-nav__en">Account</span>
+        </a>
         <a href="/search/">
           <span>搜索</span>
           <span class="mobile-nav__en">Search</span>
@@ -80,8 +110,44 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     position: sticky;
     top: 0;
     z-index: 50;
+    border-bottom: 1px solid var(--ink);
+    background: color-mix(in srgb, var(--paper) 93%, transparent);
+    backdrop-filter: blur(14px) saturate(1.1);
+    -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  }
+
+  .dispatch {
     border-bottom: 1px solid var(--rule-soft);
-    background: var(--paper);
+    background: var(--paper-sunk);
+  }
+
+  .dispatch__inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    height: 1.9rem;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .dispatch__right {
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .dispatch__feed {
+    color: var(--red-strong);
+    text-decoration: none;
+    border-bottom: 1px solid currentColor;
+  }
+
+  .dispatch__feed:hover {
+    color: var(--ink);
   }
 
   .header-inner {
@@ -89,13 +155,13 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    height: var(--header-h);
+    height: 3.85rem;
   }
 
   .brand {
     display: inline-flex;
     align-items: center;
-    gap: 0.6rem;
+    gap: 0.62rem;
     text-decoration: none;
     flex-shrink: 0;
   }
@@ -103,20 +169,22 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   .brand-mark {
     display: grid;
     place-items: center;
-    width: 1.9rem;
-    height: 1.9rem;
-    border-radius: 7px;
-    background: var(--blue);
-    color: #ffffff;
-    font-family: var(--font-sans);
-    font-size: 1rem;
+    width: 2rem;
+    height: 2rem;
+    border: 1px solid var(--ink);
+    border-radius: var(--radius-sm);
+    background: var(--ink);
+    color: var(--paper-raised);
+    font-family: var(--font-display);
+    font-size: 1.2rem;
     font-weight: 600;
     line-height: 1;
-    transition: background-color 0.3s var(--ease);
+    transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease);
   }
 
   .brand:hover .brand-mark {
-    background: var(--blue-strong);
+    background: var(--red);
+    border-color: var(--red);
   }
 
   .brand-text {
@@ -128,15 +196,15 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
 
   .brand-name {
     font-family: var(--font-sans);
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 0.93rem;
+    font-weight: 700;
     letter-spacing: -0.01em;
   }
 
   .brand-en {
     font-family: var(--font-mono);
-    font-size: 0.52rem;
-    letter-spacing: 0.16em;
+    font-size: 0.5rem;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--ink-3);
   }
@@ -144,72 +212,99 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   .nav {
     display: flex;
     align-items: center;
-    gap: 0.15rem;
-    padding: 0.18rem;
-    border-radius: 9px;
-    background: color-mix(in srgb, var(--ink) 5%, transparent);
+    gap: clamp(0.7rem, 1.6vw, 1.35rem);
   }
 
   .nav a {
     position: relative;
-    padding: 0.32rem 0.75rem;
-    border-radius: 7px;
+    padding: 0.35rem 0;
     color: var(--ink-2);
     font-size: 0.82rem;
     text-decoration: none;
-    transition: color 0.2s var(--ease), background-color 0.2s var(--ease),
-      box-shadow 0.2s var(--ease);
+    transition: color 0.2s var(--ease);
+  }
+
+  .nav a::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -0.1rem;
+    height: 2px;
+    background: var(--red);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s var(--ease);
   }
 
   .nav a:hover {
     color: var(--ink);
-    background: color-mix(in srgb, var(--ink) 6%, transparent);
+  }
+
+  .nav a:hover::after,
+  .nav a[aria-current='page']::after {
+    transform: scaleX(1);
   }
 
   .nav a[aria-current='page'] {
     color: var(--ink);
-    background: var(--paper-raised);
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   }
 
   .header-actions {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
+    gap: 0.35rem;
     flex-shrink: 0;
   }
 
-  .search-link {
+  .icon-link,
+  .menu-toggle {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    height: 2.1rem;
-    padding: 0 0.7rem;
+    justify-content: center;
+    width: 2.2rem;
+    height: 2.2rem;
     border: 1px solid transparent;
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--ink) 6%, transparent);
+    border-radius: var(--radius-sm);
+    background: transparent;
     color: var(--ink-2);
-    font-size: 0.76rem;
     text-decoration: none;
-    transition: color 0.2s var(--ease), background-color 0.2s var(--ease);
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease),
+      background-color 0.2s var(--ease);
   }
 
-  .search-link:hover {
-    color: var(--ink);
-    background: color-mix(in srgb, var(--ink) 10%, transparent);
+  .icon-link:hover,
+  .menu-toggle:hover {
+    color: var(--red-strong);
+    border-color: var(--rule);
+    background: var(--paper-raised);
+  }
+
+  .subscribe-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    height: 2.2rem;
+    padding: 0 0.7rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    color: var(--ink-2);
+    font-size: 0.74rem;
+    text-decoration: none;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease),
+      background 0.2s var(--ease);
+  }
+
+  .subscribe-link:hover {
+    color: var(--red-strong);
+    border-color: var(--red);
+    background: var(--paper-raised);
   }
 
   .menu-toggle {
     display: none;
-    align-items: center;
-    justify-content: center;
-    width: 2.1rem;
-    height: 2.1rem;
     padding: 0;
-    border: 1px solid transparent;
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--ink) 6%, transparent);
-    color: var(--ink-2);
+    cursor: pointer;
   }
 
   .menu-icon {
@@ -230,7 +325,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   }
 
   .mobile-nav {
-    border-top: 1px solid var(--rule-soft);
+    border-top: 1px solid var(--ink);
     padding: 0.4rem 0 1.1rem;
     background: var(--paper);
   }
@@ -256,44 +351,43 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
   }
 
   .mobile-nav a[aria-current='page'] {
-    color: var(--blue-strong);
+    color: var(--red-strong);
   }
 
   .mobile-nav__en {
     font-family: var(--font-mono);
-    font-size: 0.62rem;
+    font-size: 0.6rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink-3);
   }
 
-  @media (max-width: 860px) {
-    .nav {
+  @media (max-width: 980px) {
+    .nav,
+    .subscribe-link {
       display: none;
     }
 
     .menu-toggle {
       display: inline-flex;
     }
+  }
 
-    .search-text {
+  @media (max-width: 620px) {
+    .dispatch {
       display: none;
     }
 
-    .search-link {
-      width: 2.5rem;
-      padding: 0;
-      justify-content: center;
+    .header-inner {
+      height: 3.5rem;
     }
-  }
 
-  @media (max-width: 420px) {
     .brand-en {
       display: none;
     }
 
-    .brand-name {
-      font-size: 1rem;
+    .icon-link {
+      width: 2rem;
     }
   }
 </style>
@@ -339,7 +433,7 @@ const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWit
       }
     });
 
-    window.matchMedia('(min-width: 861px)').addEventListener('change', (event) => {
+    window.matchMedia('(min-width: 981px)').addEventListener('change', (event) => {
       if (event.matches) close();
     });
   }

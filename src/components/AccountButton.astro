@@ -1,0 +1,114 @@
+---
+import Icon from './Icon.astro';
+---
+
+<a class="account-btn" href="/login/" data-account-btn aria-label="登录或查看账号">
+  <span class="account-btn__avatar" data-account-avatar aria-hidden="true">
+    <Icon name="user" size={15} />
+  </span>
+  <span class="account-btn__label" data-account-label>登录</span>
+</a>
+
+<style>
+  .account-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    height: 2.2rem;
+    max-width: 10rem;
+    padding: 0 0.62rem 0 0.32rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    color: var(--ink-2);
+    font-size: 0.74rem;
+    text-decoration: none;
+    transition: color 0.2s var(--ease), border-color 0.2s var(--ease),
+      background 0.2s var(--ease);
+  }
+
+  .account-btn:hover {
+    color: var(--red-strong);
+    border-color: var(--red);
+    background: var(--paper-raised);
+  }
+
+  .account-btn__avatar {
+    display: grid;
+    place-items: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    overflow: hidden;
+    border-radius: 50%;
+    background: var(--paper-sunk);
+    color: var(--ink-3);
+    flex-shrink: 0;
+  }
+
+  .account-btn__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .account-btn__avatar[data-has-image='true'] {
+    background: transparent;
+  }
+
+  .account-btn__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .account-btn[data-logged-in='true'] .account-btn__avatar {
+    outline: 1px solid var(--red);
+    outline-offset: 1px;
+  }
+
+  @media (max-width: 720px) {
+    .account-btn__label {
+      display: none;
+    }
+
+    .account-btn {
+      width: 2.2rem;
+      padding: 0;
+      justify-content: center;
+    }
+  }
+</style>
+
+<script>
+  import { bootAccount, loginHref, subscribeAccount } from '../lib/account-client';
+
+  const button = document.querySelector<HTMLAnchorElement>('[data-account-btn]');
+  const avatar = document.querySelector<HTMLElement>('[data-account-avatar]');
+  const label = document.querySelector<HTMLElement>('[data-account-label]');
+
+  if (button && avatar && label) {
+    subscribeAccount((state) => {
+      if (state.user) {
+        button.href = '/account/';
+        button.dataset.loggedIn = 'true';
+        button.setAttribute('aria-label', `${state.user.name} 的账号`);
+        label.textContent = state.user.name;
+        if (state.user.avatar) {
+          avatar.innerHTML = `<img src="${state.user.avatar}" alt="" loading="lazy" referrerpolicy="no-referrer" />`;
+          avatar.dataset.hasImage = 'true';
+        } else {
+          const initial = state.user.name.slice(0, 1).toUpperCase();
+          avatar.textContent = initial;
+        }
+      } else {
+        button.href = loginHref();
+        button.dataset.loggedIn = 'false';
+        button.setAttribute('aria-label', '登录');
+        label.textContent = '登录';
+        avatar.dataset.hasImage = 'false';
+        avatar.innerHTML = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6.5 8-6.5S20 16 20 20"/></svg>';
+      }
+    });
+
+    bootAccount();
+  }
+</script>

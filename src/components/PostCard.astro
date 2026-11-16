@@ -47,7 +47,7 @@ const url = postUrl(post);
     flex-direction: column;
     height: 100%;
     border: 1px solid var(--rule);
-    border-radius: 14px;
+    border-radius: var(--radius);
     background: var(--paper-raised);
     overflow: hidden;
     box-shadow: var(--shadow);
@@ -57,7 +57,7 @@ const url = postUrl(post);
 
   .post-card:hover {
     transform: translateY(-3px);
-    border-color: var(--blue);
+    border-color: var(--red);
     box-shadow: var(--shadow-lift);
   }
 
@@ -81,22 +81,23 @@ const url = postUrl(post);
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.24rem 0.6rem;
+    padding: 0.22rem 0.55rem;
     border: 1px solid var(--rule);
-    border-radius: 999px;
+    border-radius: var(--radius-sm);
     background: var(--paper-raised);
     color: var(--ink-2);
-    font-size: 0.68rem;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
     text-decoration: none;
-    box-shadow: 0 1px 4px rgba(20, 36, 58, 0.08);
   }
 
   .post-card__badge::before {
     content: '';
     width: 0.38rem;
     height: 0.38rem;
-    border-radius: 50%;
-    background: var(--blue);
+    background: var(--red);
   }
 
   .post-card__badge[data-tone='sage']::before {
@@ -112,8 +113,8 @@ const url = postUrl(post);
   }
 
   .post-card__badge:hover {
-    border-color: var(--blue);
-    color: var(--blue-strong);
+    border-color: var(--red);
+    color: var(--red-strong);
   }
 
   .post-card__body {
@@ -146,12 +147,12 @@ const url = postUrl(post);
   }
 
   .post-card__title a:focus-visible::after {
-    outline: 2px solid var(--blue);
+    outline: 2px solid var(--red);
     outline-offset: -4px;
   }
 
   .post-card:hover .post-card__title a {
-    color: var(--blue-strong);
+    color: var(--red-strong);
   }
 
   .post-card__desc {
@@ -189,6 +190,6 @@ const url = postUrl(post);
 
   .post-card:hover .post-card__arrow {
     transform: translateX(3px);
-    color: var(--blue-strong);
+    color: var(--red-strong);
   }
 </style>

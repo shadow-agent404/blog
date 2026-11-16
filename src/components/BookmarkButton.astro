@@ -1,0 +1,107 @@
+---
+import Icon from './Icon.astro';
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+---
+
+<button
+  class="bookmark-btn"
+  type="button"
+  data-bookmark
+  data-slug={slug}
+  aria-pressed="false"
+  aria-label="收藏这篇文章"
+>
+  <span class="bookmark-btn__icon"><Icon name="bookmark" size={16} /></span>
+  <span class="bookmark-btn__label" data-bookmark-label>收藏</span>
+</button>
+<span class="visually-hidden" role="status" data-bookmark-status></span>
+
+<style>
+  .bookmark-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.42rem;
+    min-height: 2.35rem;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--paper-raised);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: color 0.22s var(--ease), border-color 0.22s var(--ease),
+      background-color 0.22s var(--ease), transform 0.22s var(--ease);
+  }
+
+  .bookmark-btn:hover {
+    color: var(--red-strong);
+    border-color: var(--red);
+    background: var(--paper);
+    transform: translateY(-1px);
+  }
+
+  .bookmark-btn[aria-pressed='true'] {
+    color: var(--red-strong);
+    border-color: var(--red);
+    background: var(--paper);
+  }
+
+  .bookmark-btn[aria-pressed='true'] :global(svg path) {
+    fill: currentColor;
+  }
+
+  .bookmark-btn[aria-pressed='true'] .bookmark-btn__icon {
+    transform: translateY(-1px);
+  }
+</style>
+
+<script>
+  import {
+    bootAccount,
+    subscribeAccount,
+    toggleBookmark,
+    type AccountData,
+  } from '../lib/account-client';
+
+  const button = document.querySelector<HTMLButtonElement>('[data-bookmark]');
+
+  if (button) {
+    const slug = button.dataset.slug ?? '';
+    const label = button.querySelector<HTMLElement>('[data-bookmark-label]');
+    const status = document.querySelector<HTMLElement>('[data-bookmark-status]');
+    let loggedIn = false;
+
+    const render = (saved: boolean) => {
+      button.setAttribute('aria-pressed', saved ? 'true' : 'false');
+      button.setAttribute('aria-label', saved ? '取消收藏这篇文章' : '收藏这篇文章');
+      if (label) label.textContent = saved ? '已收藏' : '收藏';
+    };
+
+    const renderFromState = (state: AccountData) => {
+      loggedIn = Boolean(state.user);
+      render(state.bookmarks.includes(slug));
+    };
+
+    subscribeAccount(renderFromState);
+    bootAccount();
+
+    button.addEventListener('click', async () => {
+      const saved = await toggleBookmark(slug);
+      render(saved);
+      if (status) {
+        status.textContent = saved
+          ? loggedIn
+            ? '已收藏，可在账号页查看'
+            : '已收藏到本机，登录后自动同步'
+          : '已取消收藏';
+      }
+    });
+  }
+</script>

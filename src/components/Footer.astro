@@ -11,21 +11,64 @@ const navItems = [
   { href: '/repos/', label: '开源' },
   { href: '/about/', label: '关于' },
 ];
+const distribution = site.distribution.filter((item) => item.href);
 ---
 
 <footer class="site-footer">
   <div class="container">
+    <section class="subscribe-band" id="subscribe" aria-labelledby="subscribe-title">
+      <div class="subscribe-band__copy">
+        <p class="kicker">订阅 / Subscribe</p>
+        <h2 class="subscribe-band__title" id="subscribe-title">把更新带走，<br />不用等算法。</h2>
+        <p class="subscribe-band__desc">
+          RSS 点开就是 XML 文件，复制链接丢进任意阅读器即可。没有弹窗，没有追踪。
+        </p>
+        <div class="subscribe-band__actions">
+          <a class="btn btn--accent" href="/rss.xml">
+            <Icon name="rss" size={15} />
+            打开 RSS XML
+          </a>
+          <a class="btn btn--ghost" href="/subscribe/">全部订阅方式</a>
+        </div>
+      </div>
+
+      <div class="feed-list" aria-label="订阅源列表">
+        {
+          site.feeds.map((feed) => (
+            <div class="feed-row">
+              <a class="feed-row__main" href={feed.href}>
+                <span class="feed-row__label">{feed.label}</span>
+                <span class="feed-row__hint">{feed.hint}</span>
+                <code class="feed-row__url">{feed.href}</code>
+              </a>
+              <button
+                class="feed-row__copy"
+                type="button"
+                data-copy-link={feed.href}
+                aria-label={`复制 ${feed.label} 链接`}
+              >
+                <Icon name="copy" size={14} />
+              </button>
+            </div>
+          ))
+        }
+        <p class="feed-list__note">链接均为站内文件，部署后可直接访问。</p>
+      </div>
+    </section>
+
     <div class="footer-note paper">
-      <p class="kicker">联系方式</p>
-      <h2 class="footer-note__title">如需合作或交流，<br />请发送邮件。</h2>
-      <a class="footer-note__mail" href={`mailto:${site.email}`}>
-        <Icon name="mail" size={18} />
-        <span>{site.email}</span>
-      </a>
-      <p class="footer-note__desc">
-        不一定要谈技术。一句读过的诗、一张拍糊的照片、一个还没想清楚的问题，都可以。
-      </p>
-      <span class="stamp footer-note__stamp" aria-hidden="true">PAPER<br />SCRAPS<br />2026</span>
+      <div class="footer-note__copy">
+        <p class="kicker">联系方式</p>
+        <h2 class="footer-note__title">如需合作或交流，<br />请发送邮件。</h2>
+        <a class="footer-note__mail" href={`mailto:${site.email}`}>
+          <Icon name="mail" size={18} />
+          <span>{site.email}</span>
+        </a>
+        <p class="footer-note__desc">
+          不一定要谈技术。一句读过的诗、一张拍糊的照片、一个还没想清楚的问题，都可以。
+        </p>
+      </div>
+      <span class="stamp footer-note__stamp" aria-hidden="true">PAPER<br />SCRAPS<br />{year}</span>
     </div>
 
     <div class="footer-grid">
@@ -46,32 +89,45 @@ const navItems = [
             ))
           }
           <li><a class="link-underline" href="/search/">搜索</a></li>
+          <li><a class="link-underline" href="/subscribe/">订阅与分发</a></li>
         </ul>
       </nav>
 
       <div class="footer-col">
-        <h2 class="footer-col__title">连接</h2>
+        <h2 class="footer-col__title">分发</h2>
         <ul>
           {
-            site.socials.map((item) => (
+            distribution.map((item) => (
               <li>
-                <a class="link-underline footer-social" href={item.href}>
-                  <Icon name={item.icon} size={15} />
+                <a class="link-underline footer-social" href={item.href} rel="me noopener">
                   <span>{item.label}</span>
+                  <span class="footer-col__kind">{item.kind}</span>
                 </a>
               </li>
             ))
           }
+          <li>
+            <a class="link-underline footer-social" href="/subscribe/#publish">
+              <span>发布方式</span>
+              <span class="footer-col__kind">Markdown</span>
+            </a>
+          </li>
         </ul>
       </div>
 
       <div class="footer-col">
-        <h2 class="footer-col__title">订阅</h2>
-        <p class="footer-col__text">可通过 RSS 订阅更新。</p>
-        <a class="btn btn--ghost footer-rss" href="/rss.xml">
-          RSS
-          <Icon name="rss" size={15} />
-        </a>
+        <h2 class="footer-col__title">账号</h2>
+        <ul>
+          <li><a class="link-underline" href="/login/">登录</a></li>
+          <li><a class="link-underline" href="/account/">收藏与阅读记录</a></li>
+          <li>
+            <a class="link-underline footer-social" href="/rss.xml">
+              <span>RSS XML</span>
+              <Icon name="rss" size={14} />
+            </a>
+          </li>
+        </ul>
+        <p class="footer-col__text">只登录，不注册，不设密码。</p>
       </div>
     </div>
 
@@ -80,27 +136,139 @@ const navItems = [
       <p class="footer-bottom__meta">{site.handle} · 保留所有权利</p>
     </div>
   </div>
+
+  <div class="copy-toast" data-copy-toast role="status" aria-live="polite" hidden>链接已复制</div>
 </footer>
 
 <style>
   .site-footer {
     margin-top: clamp(4rem, 10vw, 8rem);
     padding-top: clamp(3rem, 7vw, 5rem);
-    border-top: 1px solid var(--rule-soft);
+    border-top: 3px solid var(--ink);
     background: linear-gradient(to bottom, transparent, color-mix(in srgb, var(--paper-sunk) 55%, transparent));
   }
 
+  .subscribe-band {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(18rem, 0.95fr);
+    gap: clamp(2rem, 6vw, 5rem);
+    align-items: end;
+    padding-bottom: clamp(2.5rem, 6vw, 4.5rem);
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .subscribe-band__title {
+    margin-top: 0.9rem;
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    line-height: 1.02;
+    letter-spacing: -0.04em;
+  }
+
+  .subscribe-band__desc {
+    max-width: 26rem;
+    margin-top: 1rem;
+    color: var(--ink-3);
+    font-size: 0.9rem;
+    line-height: 1.85;
+  }
+
+  .subscribe-band__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    margin-top: 1.4rem;
+  }
+
+  .feed-list {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--ink);
+  }
+
+  .feed-row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .feed-row__main {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.15rem 1rem;
+    flex: 1;
+    padding: 0.85rem 0.2rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .feed-row__main:hover .feed-row__label {
+    color: var(--red-strong);
+  }
+
+  .feed-row__label {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: color 0.2s var(--ease);
+  }
+
+  .feed-row__hint {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .feed-row__url {
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    color: var(--ink-3);
+  }
+
+  .feed-row__copy {
+    display: grid;
+    place-items: center;
+    width: 2.6rem;
+    border: 0;
+    border-left: 1px dashed var(--rule);
+    background: transparent;
+    color: var(--ink-3);
+    cursor: pointer;
+    transition: color 0.2s var(--ease), background 0.2s var(--ease);
+  }
+
+  .feed-row__copy:hover {
+    color: var(--red-strong);
+    background: var(--paper-raised);
+  }
+
+  .feed-list__note {
+    margin-top: 0.7rem;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+
   .footer-note {
-    max-width: 40rem;
-    margin-inline: auto;
-    padding: clamp(2rem, 5vw, 3.2rem);
-    text-align: center;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 2rem;
+    max-width: 54rem;
+    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+    padding: clamp(1.6rem, 4vw, 2.6rem);
+    overflow: hidden;
   }
 
   .footer-note__title {
-    margin-top: 0.9rem;
-    font-size: clamp(1.9rem, 5vw, 3rem);
-    line-height: 1.05;
+    margin-top: 0.8rem;
+    font-size: clamp(1.7rem, 4vw, 2.6rem);
+    line-height: 1.08;
     letter-spacing: -0.03em;
   }
 
@@ -108,40 +276,39 @@ const navItems = [
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    margin-top: 1.5rem;
+    margin-top: 1.3rem;
     padding-bottom: 0.15rem;
-    border-bottom: 1px solid var(--blue);
-    color: var(--blue-strong);
+    border-bottom: 1px solid var(--red);
+    color: var(--red-strong);
     font-family: var(--font-mono);
-    font-size: 0.82rem;
+    font-size: 0.8rem;
     text-decoration: none;
     transition: color 0.25s var(--ease), border-color 0.25s var(--ease);
   }
 
   .footer-note__mail:hover {
-    color: var(--clay);
-    border-color: var(--clay);
+    color: var(--ink);
+    border-color: var(--ink);
   }
 
   .footer-note__desc {
-    max-width: 26rem;
-    margin: 1.3rem auto 0;
+    max-width: 28rem;
+    margin-top: 1.1rem;
     color: var(--ink-3);
-    font-size: 0.88rem;
+    font-size: 0.86rem;
     line-height: 1.8;
   }
 
   .footer-note__stamp {
-    position: absolute;
-    right: 1.6rem;
-    bottom: 1.4rem;
+    flex-shrink: 0;
+    transform: rotate(3deg);
   }
 
   .footer-grid {
     display: grid;
     grid-template-columns: 1.6fr repeat(3, 1fr);
     gap: clamp(1.5rem, 4vw, 3rem);
-    margin-top: clamp(3rem, 7vw, 5rem);
+    margin-top: clamp(2.5rem, 6vw, 4rem);
   }
 
   .footer-brand__name {
@@ -161,7 +328,7 @@ const navItems = [
 
   .footer-brand__en {
     font-family: var(--font-mono);
-    font-size: 0.6rem !important;
+    font-size: 0.58rem !important;
     letter-spacing: 0.2em;
     text-transform: uppercase;
     opacity: 0.7;
@@ -179,7 +346,7 @@ const navItems = [
   .footer-col__title {
     margin-bottom: 0.9rem;
     font-family: var(--font-mono);
-    font-size: 0.62rem;
+    font-size: 0.6rem;
     font-weight: 500;
     letter-spacing: 0.18em;
     text-transform: uppercase;
@@ -193,21 +360,23 @@ const navItems = [
 
   .footer-social {
     display: inline-flex;
-    align-items: center;
+    align-items: baseline;
     gap: 0.45rem;
   }
 
-  .footer-col__text {
+  .footer-col__kind {
+    font-family: var(--font-mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
     color: var(--ink-3);
-    font-size: 0.82rem;
-    line-height: 1.75;
   }
 
-  .footer-rss {
+  .footer-col__text {
     margin-top: 0.9rem;
-    min-height: 2.4rem;
-    padding: 0.35rem 0.85rem;
+    color: var(--ink-3);
     font-size: 0.76rem;
+    line-height: 1.7;
   }
 
   .footer-bottom {
@@ -229,7 +398,11 @@ const navItems = [
     text-transform: uppercase;
   }
 
-  @media (max-width: 860px) {
+  @media (max-width: 900px) {
+    .subscribe-band {
+      grid-template-columns: 1fr;
+    }
+
     .footer-grid {
       grid-template-columns: 1fr 1fr;
     }
@@ -247,5 +420,37 @@ const navItems = [
     .footer-note__stamp {
       display: none;
     }
+
+    .footer-note {
+      flex-direction: column;
+    }
   }
 </style>
+
+<script>
+  const toast = document.querySelector<HTMLElement>('[data-copy-toast]');
+  let toastTimer = 0;
+
+  const showToast = (message: string) => {
+    if (!toast) return;
+    toast.textContent = message;
+    toast.hidden = false;
+    window.clearTimeout(toastTimer);
+    toastTimer = window.setTimeout(() => {
+      toast.hidden = true;
+    }, 2200);
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('[data-copy-link]').forEach((button) => {
+    button.addEventListener('click', async () => {
+      const path = button.dataset.copyLink || '/rss.xml';
+      const url = new URL(path, window.location.origin).href;
+      try {
+        await navigator.clipboard.writeText(url);
+        showToast('订阅链接已复制');
+      } catch {
+        window.prompt('复制这个链接', url);
+      }
+    });
+  });
+</script>

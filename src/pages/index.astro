@@ -13,9 +13,11 @@ import { categoryLabel } from '../data/taxonomy';
 import { seriesMeta } from '../data/series';
 import {
   categoryCounts,
+  formatDate,
   getPosts,
   getProjects,
   latestSeries,
+  postUrl,
   readingMinutes,
   seriesPosts,
 } from '../lib/posts';
@@ -36,7 +38,10 @@ const gridPosts = posts
 const cats = categoryCounts(posts);
 const zhCount = posts.filter((post) => post.data.lang === 'zh').length;
 const enCount = posts.length - zhCount;
-const issue = String(posts.length).padStart(2, '0');
+const archiveNo = String(posts.length).padStart(2, '0');
+const now = new Date();
+const issueNo = String(now.getMonth() + 1).padStart(2, '0');
+const issueMinutes = issuePosts.reduce((sum, post) => sum + readingMinutes(post.body ?? ''), 0);
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -59,111 +64,153 @@ const jsonLd = {
 <BaseLayout jsonLd={jsonLd}>
   <section class="masthead">
     <span class="masthead__ghost" aria-hidden="true">S</span>
-    <div class="container">
-      <p class="kicker">
-        {seriesName
-          ? `本期专题 / ${seriesMeta[seriesName]?.en ?? 'Series'}`
-          : `S.A · Vol. ${issue}`}
-      </p>
-      <h1 class="masthead__title">
-        {seriesName ? (
-          `${seriesName}。`
-        ) : (
-          <>
-            记录开发、<em>摄影与影像</em>。
-          </>
-        )}
-      </h1>
-      {
-        seriesName && (
-          <p class="masthead__lede">
-            {seriesMeta[seriesName]?.intro ?? `本期专题收录 ${issuePosts.length} 篇文章。`}
+    <div class="container masthead__grid">
+      <div class="masthead__main">
+        <div class="masthead__slug">
+          <p class="kicker">
+            {seriesName ? `本期专题 / ${seriesMeta[seriesName]?.en ?? 'Series'}` : `独立出版 / Vol. ${now.getFullYear()} — ${issueNo}`}
           </p>
-        )
-      }
-      {
-        seriesName && (
-          <p class="masthead__count">
-            {issuePosts.length} 篇 · 约{' '}
-            {issuePosts.reduce((sum, post) => sum + readingMinutes(post.body ?? ''), 0)} 分钟
-          </p>
-        )
-      }
-      <form class="journal-search" action="/search/" method="get" role="search">
-        <label class="visually-hidden" for="home-search">搜索文章</label>
-        <span class="journal-search__icon" aria-hidden="true">
-          <Icon name="search" size={18} />
-        </span>
-        <input
-          id="home-search"
-          type="search"
-          name="q"
-          placeholder="搜索文章、标签或关键词…"
-          autocomplete="off"
-        />
-        <button type="submit" aria-label="搜索">
-          <Icon name="arrow-right" size={17} />
-        </button>
-      </form>
+          <span class="folio">No. {archiveNo}</span>
+        </div>
 
-      {
-        seriesName && (
-          <div class="masthead__issue">
-            <SeriesFeature name={seriesName} posts={issuePosts} showHead={false} />
+        <h1 class="masthead__title">
+          {seriesName ? (
+            `${seriesName}。`
+          ) : (
+            <>
+              记录开发、<em>摄影与影像</em>。
+            </>
+          )}
+        </h1>
+
+        <p class="masthead__lede">
+          {seriesName
+            ? seriesMeta[seriesName]?.intro ?? `本期专题收录 ${issuePosts.length} 篇文章。`
+            : site.description}
+        </p>
+
+        <form class="journal-search" action="/search/" method="get" role="search">
+          <label class="visually-hidden" for="home-search">搜索文章</label>
+          <span class="journal-search__icon" aria-hidden="true">
+            <Icon name="search" size={18} />
+          </span>
+          <input
+            id="home-search"
+            type="search"
+            name="q"
+            placeholder="搜索文章、标签或关键词…"
+            autocomplete="off"
+          />
+          <button type="submit" aria-label="搜索">
+            <Icon name="arrow-right" size={17} />
+          </button>
+        </form>
+
+        <nav class="pill-nav masthead__pills" aria-label="内容分类">
+          <a class="pill" href="/blog/">全部 <span class="pill__count">{posts.length}</span></a>
+          {
+            cats.map((cat) => (
+              <a class="pill" href={`/categories/${cat.key}/`}>
+                {categoryLabel(cat.key)}
+                <span class="pill__count">{cat.count}</span>
+              </a>
+            ))
+          }
+        </nav>
+
+        <p class="masthead__count">
+          中文 {zhCount} / EN {enCount} · 存档 {posts.length} 篇
+          {featured && <> · 最近更新 {formatDate(featured.data.date, featured.data.lang)}</>}
+        </p>
+      </div>
+
+      <aside class="masthead__side">
+        <div class="issue-card">
+          <div class="issue-card__head">
+            <span class="eyebrow">本期 / Issue</span>
+            <span class="folio">{now.getFullYear()}</span>
           </div>
-        )
-      }
-
-      <nav class="entry-grid" aria-label="站点入口">
-        <a class="entry-card" href="/about/">
-          <span class="entry-card__top">
-            <span class="entry-card__index">01</span>
-            <span class="entry-card__label">Profile</span>
-          </span>
-          <span class="entry-card__title">查看个人信息</span>
-          <span class="entry-card__arrow" aria-hidden="true">
-            <Icon name="arrow-right" size={16} />
-          </span>
-        </a>
-
-        <a class="entry-card" href="/projects/">
-          <span class="entry-card__top">
-            <span class="entry-card__index">02</span>
-            <span class="entry-card__label">Projects</span>
-          </span>
-          <span class="entry-card__title">查看项目</span>
-          <span class="entry-card__meta">{projects.length} 个项目</span>
-          <span class="entry-card__arrow" aria-hidden="true">
-            <Icon name="arrow-right" size={16} />
-          </span>
-        </a>
-
-        <a class="entry-card" href="/blog/">
-          <span class="entry-card__top">
-            <span class="entry-card__index">03</span>
-            <span class="entry-card__label">Writing</span>
-          </span>
-          <span class="entry-card__title">阅读文章</span>
-          <span class="entry-card__meta">{posts.length} 篇 · 中文 {zhCount} / EN {enCount}</span>
-          <span class="entry-card__arrow" aria-hidden="true">
-            <Icon name="arrow-right" size={16} />
-          </span>
-        </a>
-      </nav>
-
-      <nav class="pill-nav masthead__pills" aria-label="内容分类">
-        <a class="pill" href="/blog/">全部 <span class="pill__count">{posts.length}</span></a>
-        {
-          cats.map((cat) => (
-            <a class="pill" href={`/categories/${cat.key}/`}>
-              {categoryLabel(cat.key)}
-              <span class="pill__count">{cat.count}</span>
+          <p class="issue-card__no">{issueNo}</p>
+          <h2 class="issue-card__title">
+            <a href={seriesName ? '#issue' : featured ? postUrl(featured) : '/blog/'}>
+              {seriesName ?? featured?.data.title ?? '等待下一期'}
             </a>
-          ))
-        }
-      </nav>
+          </h2>
+          <p class="issue-card__meta">
+            {seriesName
+              ? `${issuePosts.length} 篇 · 约 ${issueMinutes} 分钟`
+              : featured
+                ? featured.data.description
+                : '还没有发布文章，先看看项目与关于页。'}
+          </p>
+          <div class="issue-card__foot">
+            <a class="arrow-link" href={seriesName ? '#issue' : featured ? postUrl(featured) : '/blog/'}>
+              阅读本期
+              <Icon name="arrow-right" size={14} />
+            </a>
+            <span class="folio">{archiveNo} 篇存档</span>
+          </div>
+        </div>
+
+        <a class="issue-note" href="/subscribe/">
+          <span class="issue-note__label">不想等首页更新</span>
+          <strong>用 RSS 带走更新</strong>
+          <span class="issue-note__arrow" aria-hidden="true">
+            <Icon name="arrow-right" size={15} />
+          </span>
+        </a>
+      </aside>
     </div>
   </section>
+
+  <nav class="container entry-grid" aria-label="站点入口">
+    <a class="entry-card" href="/about/">
+      <span class="entry-card__top">
+        <span class="entry-card__index">01</span>
+        <span class="entry-card__label">Profile</span>
+      </span>
+      <span class="entry-card__title">查看个人信息</span>
+      <span class="entry-card__arrow" aria-hidden="true">
+        <Icon name="arrow-right" size={16} />
+      </span>
+    </a>
+
+    <a class="entry-card" href="/projects/">
+      <span class="entry-card__top">
+        <span class="entry-card__index">02</span>
+        <span class="entry-card__label">Projects</span>
+      </span>
+      <span class="entry-card__title">查看项目</span>
+      <span class="entry-card__meta">{projects.length} 个项目</span>
+      <span class="entry-card__arrow" aria-hidden="true">
+        <Icon name="arrow-right" size={16} />
+      </span>
+    </a>
+
+    <a class="entry-card" href="/blog/">
+      <span class="entry-card__top">
+        <span class="entry-card__index">03</span>
+        <span class="entry-card__label">Writing</span>
+      </span>
+      <span class="entry-card__title">阅读文章</span>
+      <span class="entry-card__meta">{posts.length} 篇 · 中文 {zhCount} / EN {enCount}</span>
+      <span class="entry-card__arrow" aria-hidden="true">
+        <Icon name="arrow-right" size={16} />
+      </span>
+    </a>
+
+    <a class="entry-card" href="/subscribe/">
+      <span class="entry-card__top">
+        <span class="entry-card__index">04</span>
+        <span class="entry-card__label">Subscribe</span>
+      </span>
+      <span class="entry-card__title">订阅与分发</span>
+      <span class="entry-card__meta">RSS / Atom / JSON</span>
+      <span class="entry-card__arrow" aria-hidden="true">
+        <Icon name="arrow-right" size={16} />
+      </span>
+    </a>
+  </nav>
 
   {
     posts.length === 0 && (
@@ -182,6 +229,14 @@ const jsonLd = {
   }
 
   {
+    seriesName && (
+      <section class="container home-issue" aria-label="本期专题">
+        <SeriesFeature name={seriesName} posts={issuePosts} showHead={false} />
+      </section>
+    )
+  }
+
+  {
     !seriesName && featured && (
       <section class="container home-featured" aria-label="精选文章">
         <FeaturedPost post={featured} />
@@ -192,9 +247,12 @@ const jsonLd = {
   {
     gridPosts.length > 0 && (
       <section class="container journal-section" aria-labelledby="latest-title">
-        <div class="journal-meta">
-          <h2 id="latest-title" class="journal-meta__title">最新文章</h2>
-          <span class="journal-meta__note">按发布时间排序 · 共 {posts.length} 篇</span>
+        <div class="section-head">
+          <div>
+            <p class="kicker">Archive / 存档</p>
+            <h2 id="latest-title" class="section-head__title">最新文章</h2>
+          </div>
+          <span class="section-head__note">按发布时间 · 共 {posts.length} 篇</span>
         </div>
 
         <div class="post-grid">
@@ -277,12 +335,54 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
-  .masthead__issue {
-    margin-top: clamp(1.8rem, 4vw, 2.8rem);
-    text-align: left;
+  .issue-note {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.15rem 0.8rem;
+    align-items: center;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--rule);
+    border-left: 3px solid var(--red);
+    background: var(--paper-raised);
+    color: var(--ink);
+    text-decoration: none;
+    transition: border-color 0.2s var(--ease), background 0.2s var(--ease);
+  }
+
+  .issue-note:hover {
+    border-color: var(--red);
+    background: var(--paper-sunk);
+  }
+
+  .issue-note__label {
+    grid-column: 1;
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .issue-note strong {
+    grid-column: 1;
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 500;
+  }
+
+  .issue-note__arrow {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    display: inline-flex;
+    color: var(--red);
+  }
+
+  .home-issue {
+    margin-top: clamp(3rem, 7vw, 5rem);
   }
 
   .home-featured {
+    margin-top: clamp(3rem, 7vw, 5rem);
     margin-bottom: clamp(3.5rem, 7vw, 5.5rem);
   }
 
@@ -325,8 +425,7 @@ const jsonLd = {
 
   .home-empty__card {
     padding: clamp(1.6rem, 4vw, 2.6rem);
-    border: 1px solid var(--rule-soft);
-    border-radius: 14px;
+    border: 1px solid var(--rule);
     background: var(--paper-raised);
     box-shadow: var(--shadow);
   }
@@ -351,9 +450,11 @@ const jsonLd = {
 
   .entry-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1.5rem;
-    margin: 2.2rem auto 0;
+    margin-top: 2.6rem;
+    padding-top: 1.2rem;
+    border-top: 3px solid var(--ink);
     text-align: left;
   }
 
@@ -362,8 +463,7 @@ const jsonLd = {
     display: flex;
     flex-direction: column;
     gap: 0.3rem;
-    padding: 1rem 2.2rem 0.2rem 0;
-    border-top: 1px solid var(--rule);
+    padding: 0.2rem 2.2rem 0.2rem 0;
     color: var(--ink);
     text-decoration: none;
   }
@@ -373,32 +473,32 @@ const jsonLd = {
     align-items: baseline;
     gap: 0.5rem;
     font-family: var(--font-mono);
-    font-size: 0.6rem;
+    font-size: 0.58rem;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--ink-3);
   }
 
   .entry-card__index {
-    color: var(--clay);
+    color: var(--red);
   }
 
   .entry-card__title {
     font-family: var(--font-display);
-    font-size: 1.3rem;
+    font-size: 1.25rem;
     line-height: 1.3;
     letter-spacing: -0.01em;
     transition: color 0.25s var(--ease);
   }
 
   .entry-card__meta {
-    font-size: 0.76rem;
-    color: var(--ink-2);
+    font-size: 0.72rem;
+    color: var(--ink-3);
   }
 
   .entry-card__arrow {
     position: absolute;
-    top: 1.45rem;
+    top: 1.35rem;
     right: 0;
     display: inline-flex;
     color: var(--ink-3);
@@ -406,12 +506,12 @@ const jsonLd = {
   }
 
   .entry-card:hover .entry-card__title {
-    color: var(--blue-strong);
+    color: var(--red-strong);
   }
 
   .entry-card:hover .entry-card__arrow {
     transform: translateX(4px);
-    color: var(--blue-strong);
+    color: var(--red-strong);
   }
 
   .journal-section {
@@ -424,13 +524,16 @@ const jsonLd = {
     border-top: 1px solid var(--rule-soft);
   }
 
+  @media (max-width: 900px) {
+    .entry-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 1rem 1.5rem;
+    }
+  }
+
   @media (max-width: 700px) {
     .masthead__pills {
       justify-content: flex-start;
-    }
-
-    .masthead__title {
-      font-size: clamp(2.35rem, 11vw, 3.3rem);
     }
 
     .entry-grid {
@@ -441,9 +544,11 @@ const jsonLd = {
 
     .entry-card {
       padding: 0.85rem 2.2rem 0.9rem 0;
+      border-bottom: 1px dashed var(--rule-soft);
     }
 
     .entry-card:last-child {
+      border-bottom: 0;
       padding-bottom: 0;
     }
 
