@@ -51,12 +51,12 @@ export const providers = {
     icon: 'modrinth',
     blurb: 'Minecraft 插件与整合包',
     authorizeUrl: () => 'https://modrinth.com/auth/authorize',
-    tokenUrl: () => 'https://api.modrinth.com/v2/oauth/token',
+    tokenUrl: () => 'https://api.modrinth.com/_internal/oauth/token',
     userUrl: () => 'https://api.modrinth.com/v2/user',
     scope: 'USER_READ',
-    tokenAuth: 'json',
-    pkce: true,
-    confidential: false,
+    tokenAuth: 'secret-header',
+    pkce: false,
+    confidential: true,
     env: { clientId: 'AUTH_MODRINTH_CLIENT_ID', clientSecret: 'AUTH_MODRINTH_CLIENT_SECRET' },
     mapUser(data) {
       return {
@@ -384,6 +384,10 @@ export async function exchangeCode(provider, request, env, { code, codeVerifier,
     headers.authorization = `Basic ${base64(`${clientId}:${clientSecret}`)}`;
     headers['content-type'] = 'application/x-www-form-urlencoded';
     body = new URLSearchParams(params).toString();
+  } else if (provider.tokenAuth === 'secret-header') {
+    headers.authorization = clientSecret;
+    headers['content-type'] = 'application/x-www-form-urlencoded';
+    body = new URLSearchParams({ ...params, client_id: clientId }).toString();
   } else if (provider.tokenAuth === 'json') {
     headers['content-type'] = 'application/json';
     body = JSON.stringify({
