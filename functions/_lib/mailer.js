@@ -214,11 +214,24 @@ export function mailerReady(env) {
 }
 
 export async function sendMail(env, message) {
-  if (env.QQ_SMTP_USER && env.QQ_SMTP_PASS) {
-    return sendViaQQ(env, message);
-  }
+  const errors = [];
+
   if (env.RESEND_API_KEY && env.AUTH_EMAIL_FROM) {
-    return sendViaResend(env, message);
+    try {
+      return await sendViaResend(env, message);
+    } catch (error) {
+      errors.push(String(error.message || error));
+    }
   }
-  throw new Error('mail_not_configured');
+
+  if (env.QQ_SMTP_USER && env.QQ_SMTP_PASS) {
+    try {
+      return await sendViaQQ(env, message);
+    } catch (error) {
+      errors.push(String(error.message || error));
+    }
+  }
+
+  if (errors.length === 0) throw new Error('mail_not_configured');
+  throw new Error(`mail_failed:${errors.join(',')}`);
 }
