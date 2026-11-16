@@ -1,5 +1,6 @@
 import { absoluteUrl, json, readJson, requireSameOrigin, safeNext } from '../../_lib/http.js';
 import { randomId } from '../../_lib/http.js';
+import { mailerReady, sendMail } from '../../_lib/mailer.js';
 
 function escapeHtml(value) {
   return value
@@ -14,11 +15,11 @@ export async function onRequestPost({ request, env }) {
     return json({ error: 'origin_not_allowed' }, { status: 403 });
   }
 
-  if (!env.RESEND_API_KEY || !env.AUTH_EMAIL_FROM || !env.SESSIONS) {
+  if (!mailerReady(env) || !env.SESSIONS) {
     return json(
       {
         error: 'email_not_configured',
-        message: '邮件登录需要配置 RESEND_API_KEY、AUTH_EMAIL_FROM 与 SESSIONS KV。',
+        message: '邮件登录需要配置 QQ_SMTP_USER / QQ_SMTP_PASS，或 RESEND_API_KEY 与 AUTH_EMAIL_FROM。',
       },
       { status: 503 },
     );
@@ -55,14 +56,8 @@ export async function onRequestPost({ request, env }) {
   const link = absoluteUrl(request, `/api/auth/email/verify?token=${token}`);
   const safeLink = escapeHtml(link);
 
-  const response = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      authorization: `Bearer ${env.RESEND_API_KEY}`,
-      'content-type': 'application/json',
-    },
-    body: JSON.stringify({
-      from: env.AUTH_EMAIL_FROM,
+  try {
+    await sendMail(env, {
       to: email,
       subject: '登录到 S.A',
       text: `点击这个链接登录 S.A：\n${link}\n\n链接 15 分钟内有效。如果不是你本人操作，忽略这封邮件即可。`,
@@ -77,10 +72,8 @@ export async function onRequestPost({ request, env }) {
           </div>
         </div>
       `,
-    }),
-  });
-
-  if (!response.ok) {
+    });
+  } catch (error) {
     await env.SESSIONS.delete(`magic:${token}`);
     return json(
       { error: 'send_failed', message: '邮件发送失败，请稍后再试。' },

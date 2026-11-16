@@ -303,7 +303,10 @@ function clientIdOf(provider, env) {
 
 export function isConfigured(provider, env) {
   if (provider.kind === 'email') {
-    return Boolean(env.RESEND_API_KEY && env.AUTH_EMAIL_FROM);
+    return Boolean(
+      (env.QQ_SMTP_USER && env.QQ_SMTP_PASS) ||
+        (env.RESEND_API_KEY && env.AUTH_EMAIL_FROM),
+    );
   }
   if (provider.kind === 'telegram') {
     return Boolean(env.AUTH_TELEGRAM_BOT_TOKEN && env.AUTH_TELEGRAM_BOT_USERNAME);
