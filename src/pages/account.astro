@@ -1,8 +1,6 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
-
-const year = new Date().getFullYear();
 ---
 
 <BaseLayout
@@ -13,47 +11,14 @@ const year = new Date().getFullYear();
   <section class="account-page">
     <div class="container">
       <header class="account-head">
-        <div>
-          <p class="kicker">账号 / Account</p>
-          <h1 class="account-title">你的阅读桌面</h1>
-          <p class="account-lede">
-            收藏、阅读记录、点赞和订阅偏好都放在这里。只登录，不注册，不设密码。
-          </p>
-        </div>
-        <div class="account-head__actions">
-          <a class="btn btn--ghost btn--sm" href="/subscribe/">
-            <Icon name="rss" size={14} />
-            订阅方式
-          </a>
-          <a class="btn btn--ghost btn--sm" href="/login/">换一种方式登录</a>
-        </div>
+        <h1 class="account-title">账号</h1>
+        <a class="account-head__link" href="/subscribe/">订阅</a>
       </header>
 
-      <div class="notice account-welcome" data-welcome hidden>
-        登录成功。下面是你在这个站点的阅读记录与收藏。
-      </div>
-
       <div class="account-guest" data-account-guest>
-        <div class="account-gate paper">
-          <span class="stamp account-gate__stamp" aria-hidden="true">SIGN<br />IN</span>
-          <div class="account-gate__copy">
-            <p class="eyebrow">尚未登录</p>
-            <h2>登录后，这里会记住你读到哪。</h2>
-            <p>
-              支持 GitHub、Modrinth、Discord、Google、Spotify、Mastodon、GitLab、
-              Codeberg、Hugging Face、Reddit、Telegram 与邮箱登录。
-            </p>
-            <div class="account-gate__actions">
-              <a class="btn btn--accent" href="/login/?next=/account/">
-                <Icon name="user" size={15} />
-                选择登录方式
-              </a>
-              <a class="btn btn--ghost" href="/subscribe/">先看订阅</a>
-            </div>
-            <p class="account-gate__note">
-              未登录也可以在本机收藏和记录阅读，数据只存在当前浏览器。
-            </p>
-          </div>
+        <div class="account-gate">
+          <h2>登录后查看收藏与阅读记录。</h2>
+          <a class="btn" href="/login/?next=/account/">登录</a>
         </div>
       </div>
 
@@ -61,15 +26,14 @@ const year = new Date().getFullYear();
         <section class="account-profile paper" aria-labelledby="profile-title">
           <div class="account-profile__avatar" data-user-avatar aria-hidden="true"></div>
           <div class="account-profile__body">
-            <p class="eyebrow" id="profile-title">当前身份</p>
-            <h2 class="account-profile__name" data-user-name>—</h2>
+            <h2 class="account-profile__name" id="profile-title" data-user-name>—</h2>
             <p class="account-profile__meta">
               <span data-user-provider>—</span>
               <span class="account-profile__dot" aria-hidden="true">·</span>
               <span data-user-email>—</span>
             </p>
             <a class="link-underline account-profile__link" data-user-link href="#" hidden>
-              查看公开主页
+              公开主页
             </a>
           </div>
           <div class="account-profile__actions">
@@ -104,9 +68,7 @@ const year = new Date().getFullYear();
                 <span class="folio" data-bookmarks-count>0 篇</span>
               </div>
               <ul class="account-list" data-bookmark-list></ul>
-              <p class="account-empty" data-bookmark-empty hidden>
-                还没有收藏。文章页右上角的书签按钮会把文章放到这里。
-              </p>
+              <p class="account-empty" data-bookmark-empty hidden>还没有收藏。</p>
             </section>
 
             <section class="account-section paper" aria-labelledby="history-title">
@@ -115,9 +77,7 @@ const year = new Date().getFullYear();
                 <span class="folio" data-history-count>0 条</span>
               </div>
               <ul class="account-list" data-history-list></ul>
-              <p class="account-empty" data-history-empty hidden>
-                还没有阅读记录。打开一篇文章就会自动记下。
-              </p>
+              <p class="account-empty" data-history-empty hidden>还没有阅读记录。</p>
             </section>
 
             <section class="account-section paper" aria-labelledby="likes-title">
@@ -126,9 +86,7 @@ const year = new Date().getFullYear();
                 <span class="folio" data-likes-count>0 篇</span>
               </div>
               <ul class="account-list" data-likes-list></ul>
-              <p class="account-empty" data-likes-empty hidden>
-                还没有点赞。点赞会跟着账号走，换设备也在。
-              </p>
+              <p class="account-empty" data-likes-empty hidden>还没有点赞。</p>
             </section>
           </div>
 
@@ -141,30 +99,18 @@ const year = new Date().getFullYear();
               <form class="account-prefs" data-prefs-form>
                 <label class="pref-row">
                   <input type="checkbox" name="rss" />
-                  <span>
-                    <strong>RSS 更新</strong>
-                    <small>订阅源始终公开，不需要登录。</small>
-                  </span>
+                  <span><strong>RSS 更新</strong></span>
                 </label>
                 <label class="pref-row">
                   <input type="checkbox" name="email" />
-                  <span>
-                    <strong>邮件提醒</strong>
-                    <small>需要站点配置 Resend 后才能发送。</small>
-                  </span>
+                  <span><strong>邮件提醒</strong></span>
                 </label>
                 <label class="pref-row">
                   <input type="checkbox" name="telegram" />
-                  <span>
-                    <strong>Telegram 提醒</strong>
-                    <small>需要配置机器人后才能发送。</small>
-                  </span>
+                  <span><strong>Telegram 提醒</strong></span>
                 </label>
                 <label class="pref-row pref-row--select">
-                  <span>
-                    <strong>摘要频率</strong>
-                    <small>决定提醒的节奏。</small>
-                  </span>
+                  <span><strong>摘要频率</strong></span>
                   <select class="input" name="digest">
                     <option value="weekly">每周</option>
                     <option value="instant">有新文章就提醒</option>
@@ -173,41 +119,9 @@ const year = new Date().getFullYear();
                 </label>
               </form>
             </section>
-
-            <section class="account-section paper" aria-labelledby="identity-title">
-              <div class="account-section__head">
-                <h2 id="identity-title">评论身份</h2>
-                <span class="folio">Giscus</span>
-              </div>
-              <p class="account-aside-text">
-                文章评论区由 Giscus 提供，身份来自 GitHub。这个账号页负责收藏、阅读记录、
-                点赞与订阅偏好，两套身份可以同时使用。
-              </p>
-              <a class="arrow-link" href="/about/">
-                了解本站
-                <Icon name="arrow-right" size={15} />
-              </a>
-            </section>
-
-            <section class="account-section account-security" aria-labelledby="security-title">
-              <div class="account-section__head">
-                <h2 id="security-title">安全</h2>
-                <Icon name="shield" size={16} />
-              </div>
-              <p class="account-aside-text">
-                本站不保存密码。退出登录只会删除当前会话，不会注销你在 GitHub、Modrinth
-                等平台的账号。
-              </p>
-              <button class="btn btn--ghost btn--wide" type="button" data-logout>
-                <Icon name="logout" size={14} />
-                退出登录
-              </button>
-            </section>
           </aside>
         </div>
       </div>
-
-      <p class="account-foot">© {year} S.A · 数据保存在当前浏览器或 Cloudflare KV。</p>
     </div>
   </section>
 </BaseLayout>
@@ -219,38 +133,26 @@ const year = new Date().getFullYear();
 
   .account-head {
     display: flex;
-    align-items: flex-end;
+    align-items: baseline;
     justify-content: space-between;
     gap: 2rem;
-    padding-bottom: 1.3rem;
-    border-bottom: 3px solid var(--ink);
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--rule);
   }
 
   .account-title {
-    margin-top: 0.8rem;
-    font-size: clamp(2.2rem, 5vw, 3.8rem);
-    line-height: 1;
-    letter-spacing: -0.04em;
+    font-size: clamp(1.8rem, 4vw, 2.4rem);
+    letter-spacing: -0.03em;
   }
 
-  .account-lede {
-    max-width: 34rem;
-    margin-top: 0.9rem;
+  .account-head__link {
     color: var(--ink-3);
-    font-size: 0.9rem;
-    line-height: 1.85;
+    font-size: 0.82rem;
+    text-decoration: none;
   }
 
-  .account-head__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    flex-shrink: 0;
-  }
-
-  .account-welcome {
-    margin-top: 1rem;
-    border-left-color: var(--sage);
+  .account-head__link:hover {
+    color: var(--ink);
   }
 
   .account-guest {
@@ -259,41 +161,18 @@ const year = new Date().getFullYear();
 
   .account-gate {
     display: flex;
-    align-items: flex-start;
-    gap: clamp(1.2rem, 4vw, 3rem);
-    padding: clamp(1.5rem, 4vw, 2.6rem);
-  }
-
-  .account-gate__stamp {
-    flex-shrink: 0;
-    transform: rotate(-3deg);
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+    padding: 1.2rem 0;
   }
 
   .account-gate h2 {
-    margin-top: 0.55rem;
-    font-size: clamp(1.5rem, 3.4vw, 2.2rem);
-    line-height: 1.2;
-  }
-
-  .account-gate p {
-    max-width: 36rem;
-    margin-top: 0.7rem;
-    color: var(--ink-3);
-    font-size: 0.86rem;
-    line-height: 1.8;
-  }
-
-  .account-gate__actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1.2rem;
-  }
-
-  .account-gate__note {
-    font-family: var(--font-mono);
-    font-size: 0.62rem !important;
-    letter-spacing: 0.04em;
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 400;
+    color: var(--ink-2);
   }
 
   .account-member {

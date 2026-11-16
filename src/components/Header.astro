@@ -2,7 +2,6 @@
 import Icon from './Icon.astro';
 import ThemeToggle from './ThemeToggle.astro';
 import AccountButton from './AccountButton.astro';
-import { site } from '../site.config';
 
 const path = Astro.url.pathname;
 const navItems = [
@@ -14,34 +13,11 @@ const navItems = [
 ];
 
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
-const now = new Date();
-const issue = String(now.getMonth() + 1).padStart(2, '0');
-const dateLabel = new Intl.DateTimeFormat('zh-CN', {
-  year: 'numeric',
-  month: 'long',
-  day: 'numeric',
-}).format(now);
 ---
 
 <header class="site-header">
-  <div class="dispatch">
-    <div class="container dispatch__inner">
-      <span>S.A / 独立出版 · Vol. {now.getFullYear()} — {issue}</span>
-      <span class="dispatch__right">
-        <span>{dateLabel}</span>
-        <a href="/rss.xml" class="dispatch__feed">RSS 直达</a>
-      </span>
-    </div>
-  </div>
-
   <div class="container header-inner">
-    <a class="brand" href="/" aria-label={`${site.name} 首页`}>
-      <span class="brand-mark" aria-hidden="true">S</span>
-      <span class="brand-text">
-        <span class="brand-name">{site.name}</span>
-        {site.nameEn !== site.name && <span class="brand-en">{site.nameEn}</span>}
-      </span>
-    </a>
+    <a class="brand" href="/" aria-label="sa 首页">sa</a>
 
     <nav class="nav" aria-label="主导航">
       {
@@ -83,23 +59,13 @@ const dateLabel = new Intl.DateTimeFormat('zh-CN', {
         {
           navItems.map((item) => (
             <a href={item.href} aria-current={isActive(item.href) ? 'page' : undefined}>
-              <span>{item.label}</span>
-              <span class="mobile-nav__en">{item.en}</span>
+              {item.label}
             </a>
           ))
         }
-        <a href="/subscribe/">
-          <span>订阅与分发</span>
-          <span class="mobile-nav__en">Subscribe</span>
-        </a>
-        <a href="/account/">
-          <span>账号与收藏</span>
-          <span class="mobile-nav__en">Account</span>
-        </a>
-        <a href="/search/">
-          <span>搜索</span>
-          <span class="mobile-nav__en">Search</span>
-        </a>
+        <a href="/subscribe/">订阅</a>
+        <a href="/account/">账号与收藏</a>
+        <a href="/search/">搜索</a>
       </nav>
     </div>
   </div>
@@ -110,44 +76,10 @@ const dateLabel = new Intl.DateTimeFormat('zh-CN', {
     position: sticky;
     top: 0;
     z-index: 50;
-    border-bottom: 1px solid var(--ink);
+    border-bottom: 1px solid var(--rule);
     background: color-mix(in srgb, var(--paper) 93%, transparent);
     backdrop-filter: blur(14px) saturate(1.1);
     -webkit-backdrop-filter: blur(14px) saturate(1.1);
-  }
-
-  .dispatch {
-    border-bottom: 1px solid var(--rule-soft);
-    background: var(--paper-sunk);
-  }
-
-  .dispatch__inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    height: 1.9rem;
-    font-family: var(--font-mono);
-    font-size: 0.56rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
-  }
-
-  .dispatch__right {
-    display: inline-flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .dispatch__feed {
-    color: var(--red-strong);
-    text-decoration: none;
-    border-bottom: 1px solid currentColor;
-  }
-
-  .dispatch__feed:hover {
-    color: var(--ink);
   }
 
   .header-inner {
@@ -159,54 +91,19 @@ const dateLabel = new Intl.DateTimeFormat('zh-CN', {
   }
 
   .brand {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.62rem;
-    text-decoration: none;
     flex-shrink: 0;
-  }
-
-  .brand-mark {
-    display: grid;
-    place-items: center;
-    width: 2rem;
-    height: 2rem;
-    border: 1px solid var(--ink);
-    border-radius: var(--radius-sm);
-    background: var(--ink);
-    color: var(--paper-raised);
+    color: var(--ink);
     font-family: var(--font-display);
-    font-size: 1.2rem;
+    font-size: 1.4rem;
     font-weight: 600;
+    letter-spacing: -0.02em;
     line-height: 1;
-    transition: background-color 0.25s var(--ease), border-color 0.25s var(--ease);
+    text-decoration: none;
+    transition: color 0.2s var(--ease);
   }
 
-  .brand:hover .brand-mark {
-    background: var(--red);
-    border-color: var(--red);
-  }
-
-  .brand-text {
-    display: flex;
-    flex-direction: column;
-    line-height: 1.05;
-    gap: 0.22rem;
-  }
-
-  .brand-name {
-    font-family: var(--font-sans);
-    font-size: 0.93rem;
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
-
-  .brand-en {
-    font-family: var(--font-mono);
-    font-size: 0.5rem;
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    color: var(--ink-3);
+  .brand:hover {
+    color: var(--red-strong);
   }
 
   .nav {
@@ -340,26 +237,15 @@ const dateLabel = new Intl.DateTimeFormat('zh-CN', {
   }
 
   .mobile-nav a {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 1rem;
+    display: block;
     padding: 0.8rem 0.2rem;
-    border-bottom: 1px dashed var(--rule-soft);
+    border-bottom: 1px solid var(--rule-soft);
     color: var(--ink-2);
     text-decoration: none;
   }
 
   .mobile-nav a[aria-current='page'] {
     color: var(--red-strong);
-  }
-
-  .mobile-nav__en {
-    font-family: var(--font-mono);
-    font-size: 0.6rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--ink-3);
   }
 
   @media (max-width: 980px) {
@@ -374,16 +260,8 @@ const dateLabel = new Intl.DateTimeFormat('zh-CN', {
   }
 
   @media (max-width: 620px) {
-    .dispatch {
-      display: none;
-    }
-
     .header-inner {
       height: 3.5rem;
-    }
-
-    .brand-en {
-      display: none;
     }
 
     .icon-link {

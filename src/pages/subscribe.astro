@@ -1,211 +1,68 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import Icon from '../components/Icon.astro';
-import { getPosts } from '../lib/posts';
 import { site } from '../site.config';
 
-const posts = await getPosts();
-const latest = posts[0];
-
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: '订阅与分发',
-  url: new URL('/subscribe/', site.url).href,
-  description: 'RSS、Atom、JSON Feed 直链，以及文章的分发渠道与发布方式。',
-};
+const channels = site.distribution.filter((item) => item.href);
 ---
 
 <BaseLayout
-  title="订阅与分发"
-  description="复制 RSS / Atom / JSON Feed 直链，或查看文章的分发渠道与发布方式。"
-  jsonLd={jsonLd}
+  title="订阅"
+  description="RSS、Atom、JSON Feed 直链，以及各平台主页。"
 >
   <section class="masthead">
-    <span class="masthead__ghost" aria-hidden="true">订</span>
     <div class="container">
-      <p class="kicker">Subscribe · 不必等算法</p>
-      <h1 class="masthead__title">订阅与分发</h1>
-      <p class="masthead__lede">
-        没有弹窗，没有注册墙。复制一个链接，把它交给你的阅读器；或者看看这些文章还会去哪里。
-      </p>
-      <p class="masthead__count">{site.name} · {posts.length} Articles · 3 Feeds</p>
+      <h1 class="masthead__title">订阅</h1>
+      <p class="masthead__lede">RSS、Atom、JSON，点开就是文件。</p>
     </div>
   </section>
 
   <div class="container subscribe-page">
-    <section class="subscribe-block" aria-labelledby="feeds-title">
-      <header class="section-head">
-        <div>
-          <p class="kicker">01 / Feeds</p>
-          <h2 id="feeds-title">直接打开，直接复制</h2>
-        </div>
-        <span class="folio">XML / JSON</span>
-      </header>
-
-      <p class="subscribe-note">
-        每个按钮都会跳到真实的订阅文件，不是一段说明。复制按钮拿到的就是该文件的完整地址。
-      </p>
-
-      <ul class="feed-list">
-        {
-          site.feeds.map((feed) => (
-            <li class="feed-item">
-              <div class="feed-item__body">
-                <a class="feed-item__label" href={feed.href}>
-                  {feed.label}
-                  <Icon name="arrow-right" size={15} />
-                </a>
-                <span class="feed-item__hint">{feed.hint}</span>
-                <code class="feed-item__url">{site.url}{feed.href}</code>
-              </div>
+    <ul class="feed-list">
+      {
+        site.feeds.map((feed) => (
+          <li class="feed-item">
+            <div class="feed-item__head">
+              <a class="feed-item__label" href={feed.href}>{feed.label}</a>
               <button
                 class="feed-item__copy"
                 type="button"
-                data-copy-feed={feed.href}
-                aria-label={`复制 ${feed.label} 订阅地址`}
+                data-copy-link={feed.href}
+                aria-label={`复制 ${feed.label} 链接`}
               >
-                <Icon name="copy" size={15} />
+                <Icon name="copy" size={14} />
                 复制
               </button>
-            </li>
-          ))
-        }
-      </ul>
-
-      <div class="reader-note">
-        <p class="reader-note__title">放在哪？</p>
-        <p>
-          任意支持 RSS 的阅读器都可以，例如 Feedly、Inoreader、NetNewsWire、Reeder、FreshRSS。
-          也可以把链接丢进 Telegram 机器人或自己的脚本里。本站不追踪订阅者。
-        </p>
-      </div>
-    </section>
-
-    <section class="subscribe-block" aria-labelledby="places-title">
-      <header class="section-head">
-        <div>
-          <p class="kicker">02 / Elsewhere</p>
-          <h2 id="places-title">这些地方也会出现</h2>
-        </div>
-        <span class="folio">{site.distribution.filter((item) => item.href).length} 个渠道</span>
-      </header>
-
-      <div class="place-grid">
-        {
-          site.distribution
-            .filter((item) => item.href)
-            .map((item) => (
-              <a class="place-card" href={item.href} target="_blank" rel="noopener noreferrer">
-                <span class="place-card__kind">{item.kind}</span>
-                <span class="place-card__label">{item.label}</span>
-                <Icon name="external" size={15} />
-              </a>
-            ))
-        }
-      </div>
-
-      <p class="subscribe-note">
-        没有公开主页的渠道不会列出来，避免伪造入口。想让我在某个平台更新，直接写信告诉我。
-      </p>
-    </section>
-
-    <section class="subscribe-block" aria-labelledby="publish-title">
-      <header class="section-head">
-        <div>
-          <p class="kicker">03 / Publish</p>
-          <h2 id="publish-title">文章是怎么发出来的</h2>
-        </div>
-        <span class="folio">Markdown → 静态站</span>
-      </header>
-
-      <ol class="publish-steps">
-        <li>
-          <span class="publish-steps__no">01</span>
-          <div>
-            <strong>写 Markdown</strong>
-            <p>文章放在仓库的 <code>src/content/posts/</code>，用 frontmatter 声明标题、日期、分类与标签。</p>
-          </div>
-        </li>
-        <li>
-          <span class="publish-steps__no">02</span>
-          <div>
-            <strong>构建并预览</strong>
-            <p>Astro 在本地生成静态页面，RSS、Atom、JSON Feed 与纯文本 Markdown 同时产出。</p>
-          </div>
-        </li>
-        <li>
-          <span class="publish-steps__no">03</span>
-          <div>
-            <strong>部署到 Cloudflare Pages</strong>
-            <p>推送后自动构建。新的订阅源会立刻更新，不需要重新提交。</p>
-          </div>
-        </li>
-        <li>
-          <span class="publish-steps__no">04</span>
-          <div>
-            <strong>手动分发</strong>
-            <p>每篇文章底部都能复制 Markdown、下载源文件、生成分享卡片，再挑平台发布。</p>
-          </div>
-        </li>
-      </ol>
-
-      {
-        latest && (
-          <div class="publish-sample">
-            <span>从最新一篇开始试：</span>
-            <a href={`/raw/${latest.id}.md`} target="_blank" rel="noopener noreferrer">
-              {latest.id}.md
-              <Icon name="external" size={14} />
-            </a>
-            <a href={`${site.repoUrl}/edit/main/src/content/posts/${latest.id}.md`} target="_blank" rel="noopener noreferrer">
-              在 GitHub 编辑
-              <Icon name="external" size={14} />
-            </a>
-          </div>
-        )
+            </div>
+            <code class="feed-item__url">{site.url}{feed.href}</code>
+          </li>
+        ))
       }
-    </section>
+    </ul>
 
-    <section class="subscribe-block subscribe-block--account" aria-labelledby="account-title">
-      <header class="section-head">
-        <div>
-          <p class="kicker">04 / Account</p>
-          <h2 id="account-title">想要收藏和提醒？</h2>
-        </div>
-      </header>
-      <p class="subscribe-note">
-        订阅不需要账号。只有当你想要跨设备收藏、阅读记录和更新提醒时，才需要登录。不设密码，只走第三方身份或邮箱。
-      </p>
-      <div class="subscribe-actions">
-        <a class="btn btn--accent" href="/login/">登录 / 解锁收藏</a>
-        <a class="btn btn--ghost" href="/account/">查看我的账号</a>
-      </div>
-    </section>
+    {
+      channels.length > 0 && (
+        <section class="places" aria-labelledby="places-title">
+          <h2 id="places-title">其他平台</h2>
+          <ul>
+            {channels.map((item) => (
+              <li>
+                <a href={item.href} target="_blank" rel="noopener noreferrer">
+                  {item.label}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
   </div>
 </BaseLayout>
 
 <style>
   .subscribe-page {
-    max-width: 60rem;
-    padding-block: clamp(2.5rem, 6vw, 4.5rem);
-  }
-
-  .subscribe-block {
-    padding-top: 1.4rem;
-    border-top: 3px solid var(--ink);
-  }
-
-  .subscribe-block + .subscribe-block {
-    margin-top: clamp(2.5rem, 5vw, 4rem);
-  }
-
-  .subscribe-note {
     max-width: 44rem;
-    margin-top: 0.9rem;
-    color: var(--ink-3);
-    font-size: 0.88rem;
-    line-height: 1.85;
+    padding-block: 1rem clamp(3rem, 7vw, 5rem);
   }
 
   .feed-list {
@@ -217,35 +74,22 @@ const jsonLd = {
   }
 
   .feed-item {
+    padding: 0.85rem 1rem;
+    border: 1px solid var(--rule);
+    background: var(--paper-raised);
+  }
+
+  .feed-item__head {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    padding: 0.9rem 1rem;
-    border: 1px solid var(--rule);
-    background: var(--paper-raised);
-    transition: border-color 0.2s var(--ease);
-  }
-
-  .feed-item:hover {
-    border-color: var(--ink);
-  }
-
-  .feed-item__body {
-    display: flex;
-    flex-direction: column;
-    gap: 0.22rem;
-    min-width: 0;
   }
 
   .feed-item__label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
     color: var(--ink);
-    font-family: var(--font-display);
-    font-size: 1.2rem;
-    letter-spacing: -0.02em;
+    font-size: 1rem;
+    font-weight: 600;
     text-decoration: none;
   }
 
@@ -253,16 +97,13 @@ const jsonLd = {
     color: var(--red-strong);
   }
 
-  .feed-item__hint {
-    color: var(--ink-3);
-    font-size: 0.72rem;
-  }
-
   .feed-item__url {
+    display: block;
+    margin-top: 0.35rem;
     overflow: hidden;
     color: var(--ink-3);
     font-family: var(--font-mono);
-    font-size: 0.6rem;
+    font-size: 0.62rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -270,254 +111,52 @@ const jsonLd = {
   .feed-item__copy {
     display: inline-flex;
     align-items: center;
-    gap: 0.35rem;
+    gap: 0.3rem;
     flex: none;
-    min-height: 2.3rem;
-    padding: 0.35rem 0.75rem;
-    border: 1px solid var(--ink);
-    background: var(--ink);
-    color: var(--paper-raised);
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    letter-spacing: 0.06em;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--ink-2);
+    font-size: 0.72rem;
     cursor: pointer;
-    transition: background 0.2s var(--ease), border-color 0.2s var(--ease);
   }
 
   .feed-item__copy:hover {
-    border-color: var(--red);
-    background: var(--red);
-  }
-
-  .reader-note {
-    margin-top: 1.2rem;
-    padding: 1rem 1.1rem;
-    border-left: 3px solid var(--red);
-    background: var(--paper-raised);
-  }
-
-  .reader-note__title {
-    margin-bottom: 0.35rem;
-    font-family: var(--font-mono);
-    font-size: 0.58rem;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--red-strong);
-  }
-
-  .reader-note p:last-child {
-    color: var(--ink-3);
-    font-size: 0.82rem;
-    line-height: 1.8;
-  }
-
-  .place-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
-    gap: 0.5rem;
-    margin-top: 1.4rem;
-  }
-
-  .place-card {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    padding: 0.75rem 0.8rem;
-    border: 1px solid var(--rule);
+    border-color: var(--ink-3);
     color: var(--ink);
-    text-decoration: none;
-    transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
   }
 
-  .place-card:hover {
-    border-color: var(--red);
-    color: var(--red-strong);
+  .places {
+    margin-top: 2.4rem;
   }
 
-  .place-card__kind {
-    font-family: var(--font-mono);
-    font-size: 0.5rem;
-    letter-spacing: 0.12em;
+  .places h2 {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--ink-3);
   }
 
-  .place-card__label {
-    font-family: var(--font-display);
-    font-size: 1rem;
-  }
-
-  .place-card :global(svg) {
-    margin-left: auto;
-    color: var(--ink-3);
-  }
-
-  .publish-steps {
-    display: grid;
-    gap: 0;
-    margin: 1.4rem 0 0;
+  .places ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    margin-top: 0.9rem;
     padding: 0;
     list-style: none;
   }
 
-  .publish-steps li {
-    display: grid;
-    grid-template-columns: 2.6rem minmax(0, 1fr);
-    gap: 0.8rem;
-    padding: 0.85rem 0;
-    border-bottom: 1px dashed var(--rule);
-  }
-
-  .publish-steps li:last-child {
-    border-bottom: 0;
-  }
-
-  .publish-steps__no {
-    font-family: var(--font-mono);
-    font-size: 0.66rem;
-    letter-spacing: 0.1em;
-    color: var(--red);
-  }
-
-  .publish-steps strong {
-    font-family: var(--font-sans);
-    font-size: 0.86rem;
-    font-weight: 600;
-  }
-
-  .publish-steps p {
-    margin-top: 0.25rem;
-    color: var(--ink-3);
-    font-size: 0.8rem;
-    line-height: 1.8;
-  }
-
-  .publish-steps code {
-    padding: 0.05rem 0.3rem;
-    background: var(--paper-sunk);
-    font-family: var(--font-mono);
-    font-size: 0.72em;
-  }
-
-  .publish-sample {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 1.2rem;
-    padding-top: 1rem;
-    border-top: 1px solid var(--rule);
-    font-family: var(--font-mono);
-    font-size: 0.62rem;
-    color: var(--ink-3);
-  }
-
-  .publish-sample a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.3rem;
-    padding: 0.22rem 0.5rem;
-    border: 1px solid var(--rule);
+  .places a {
     color: var(--ink-2);
+    font-size: 0.88rem;
     text-decoration: none;
   }
 
-  .publish-sample a:hover {
-    border-color: var(--red);
-    color: var(--red-strong);
-  }
-
-  .subscribe-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-top: 1.2rem;
-  }
-
-  @media (max-width: 560px) {
-    .feed-item {
-      align-items: flex-start;
-      flex-direction: column;
-    }
-
-    .feed-item__copy {
-      width: 100%;
-      justify-content: center;
-    }
+  .places a:hover {
+    color: var(--ink);
+    text-decoration: underline;
   }
 </style>
-
-<script>
-  const scope = window as unknown as { __saSubscribeBound?: boolean };
-
-  if (!scope.__saSubscribeBound) {
-    scope.__saSubscribeBound = true;
-
-    const toast = document.createElement('div');
-    toast.className = 'copy-toast';
-    toast.dataset.copyToast = '';
-    toast.setAttribute('role', 'status');
-    toast.setAttribute('aria-live', 'polite');
-    document.body.appendChild(toast);
-
-    let timer = 0;
-
-    const showToast = (message: string) => {
-      toast.textContent = message;
-      toast.dataset.visible = 'true';
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => {
-        toast.dataset.visible = 'false';
-      }, 2200);
-    };
-
-    const copyText = async (text: string) => {
-      if (navigator.clipboard && window.isSecureContext) {
-        try {
-          await navigator.clipboard.writeText(text);
-          return true;
-        } catch {
-          /* 回退到 execCommand */
-        }
-      }
-
-      const area = document.createElement('textarea');
-      area.value = text;
-      area.setAttribute('readonly', '');
-      area.style.position = 'fixed';
-      area.style.top = '-9999px';
-      document.body.appendChild(area);
-      area.select();
-      let copied = false;
-      try {
-        copied = document.execCommand('copy');
-      } catch {
-        copied = false;
-      }
-      area.remove();
-      return copied;
-    };
-
-    document.addEventListener('click', async (event) => {
-      const button = (event.target as HTMLElement).closest<HTMLButtonElement>('[data-copy-feed]');
-      if (!button) return;
-
-      const path = button.dataset.copyFeed;
-      if (!path) return;
-
-      const absolute = new URL(path, location.origin).href;
-      const copied = await copyText(absolute);
-
-      if (!copied) {
-        showToast('复制失败，请打开链接后从地址栏复制');
-        return;
-      }
-
-      showToast('订阅地址已复制');
-      button.innerHTML = '已复制';
-      window.setTimeout(() => {
-        button.innerHTML = '<svg aria-hidden="true" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 5.5A1.5 1.5 0 0 0 13.5 4H5.5A1.5 1.5 0 0 0 4 5.5v8A1.5 1.5 0 0 0 5.5 15" stroke-linecap="round"/></svg> 复制';
-      }, 2000);
-    });
-  }
-</script>
