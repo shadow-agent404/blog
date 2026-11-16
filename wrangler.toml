@@ -8,11 +8,9 @@ binding = "LIKES"
 id = "94518aece7f24154ab69aca151501f0e"
 
 # 登录会话与用户数据（收藏 / 阅读记录 / 点赞列表 / 订阅偏好）。
-# 先执行：wrangler kv namespace create SESSIONS
-# 把返回的 id 填到下面，并取消注释。
-# [[kv_namespaces]]
-# binding = "SESSIONS"
-# id = "REPLACE_WITH_SESSIONS_NAMESPACE_ID"
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "e403aa4e09184555a7576e31aa455e56"
 
 # ---------------------------------------------------------------------------
 # 环境变量 / 密钥：不要写在这个文件里，用 wrangler 或 Cloudflare 控制台设置。
