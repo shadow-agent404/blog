@@ -98,12 +98,32 @@ const jsonLd = {
           </a>
         </header>
 
-        <div class="post-rail" tabindex="0" aria-label="文章列表，可左右滑动">
-          {posts.map((post, index) => (
-            <div class="post-rail__item">
-              <PostCard post={post} index={index + 1} />
-            </div>
-          ))}
+        <div class="post-carousel">
+          <button
+            class="carousel-btn carousel-btn--prev"
+            type="button"
+            data-carousel-prev
+            aria-label="上一篇"
+          >
+            <Icon name="chevron-right" size={18} />
+          </button>
+
+          <div class="post-rail" data-post-rail tabindex="0" aria-label="文章列表，可左右滑动">
+            {posts.map((post, index) => (
+              <div class="post-rail__item" data-carousel-item>
+                <PostCard post={post} index={index + 1} />
+              </div>
+            ))}
+          </div>
+
+          <button
+            class="carousel-btn carousel-btn--next"
+            type="button"
+            data-carousel-next
+            aria-label="下一篇"
+          >
+            <Icon name="chevron-right" size={18} />
+          </button>
         </div>
       </section>
     )
@@ -121,7 +141,7 @@ const jsonLd = {
       <ul class="more-list">
         {
           projects.slice(0, 4).map((project) => (
-            <li>
+            <li data-reveal>
               <a href={`/projects/${project.id}/`}>
                 <span class="more-list__year">{project.data.year}</span>
                 <span class="more-list__title">{project.data.title}</span>
@@ -179,18 +199,29 @@ const jsonLd = {
     margin-top: clamp(2.5rem, 6vw, 4rem);
   }
 
+  .post-carousel {
+    position: relative;
+    margin-top: 1.4rem;
+  }
+
   .post-rail {
+    --rail-card: min(32rem, 74vw);
     display: grid;
     grid-auto-flow: column;
-    grid-auto-columns: minmax(17rem, 23rem);
+    grid-auto-columns: var(--rail-card);
     gap: 1rem;
-    margin-top: 1.4rem;
-    padding-bottom: 0.6rem;
+    padding: 0.4rem calc((100% - var(--rail-card)) / 2) 0.9rem;
     overflow-x: auto;
+    cursor: grab;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
-    scroll-padding-inline: 0.25rem;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+  }
+
+  .post-rail::-webkit-scrollbar {
+    display: none;
   }
 
   .post-rail:focus-visible {
@@ -198,22 +229,95 @@ const jsonLd = {
     outline-offset: 4px;
   }
 
-  .post-rail::-webkit-scrollbar {
-    height: 6px;
-  }
-
-  .post-rail::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background: var(--rule);
-  }
-
   .post-rail__item {
-    scroll-snap-align: start;
+    scroll-snap-align: center;
+    opacity: 0.4;
+    transform: scale(0.95);
+    transition: opacity 0.4s var(--ease), transform 0.4s var(--ease);
   }
 
-  @media (max-width: 560px) {
+  .post-rail__item.is-active {
+    opacity: 1;
+    transform: none;
+  }
+
+  .carousel-btn {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border: 1px solid var(--rule);
+    border-radius: 50%;
+    background: var(--paper-raised);
+    color: var(--ink-2);
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  }
+
+  .carousel-btn:hover {
+    background: var(--ink);
+    color: var(--paper-raised);
+  }
+
+  .carousel-btn:disabled {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .carousel-btn--prev {
+    left: 0.6rem;
+  }
+
+  .carousel-btn--prev :global(svg) {
+    transform: rotate(180deg);
+  }
+
+  .carousel-btn--next {
+    right: 0.6rem;
+  }
+
+  /* 项目逐条上浮 */
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 0.55s var(--ease), transform 0.55s var(--ease);
+  }
+
+  [data-reveal].is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-reveal] {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+
     .post-rail {
-      grid-auto-columns: 82%;
+      scroll-behavior: auto;
+    }
+
+    .post-rail__item {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .carousel-btn {
+      display: none;
+    }
+
+    .post-rail {
+      --rail-card: 84%;
     }
   }
 
@@ -396,3 +500,135 @@ const jsonLd = {
     }
   }
 </style>
+
+<script>
+  const rail = document.querySelector<HTMLElement>('[data-post-rail]');
+  const items = Array.from(document.querySelectorAll<HTMLElement>('[data-carousel-item]'));
+  const prev = document.querySelector<HTMLButtonElement>('[data-carousel-prev]');
+  const next = document.querySelector<HTMLButtonElement>('[data-carousel-next]');
+
+  if (rail && items.length > 0) {
+    let active = 0;
+
+    const centerOf = (item: HTMLElement) => item.offsetLeft + item.offsetWidth / 2;
+
+    const setActive = (index: number, scroll = false) => {
+      active = Math.max(0, Math.min(items.length - 1, index));
+      items.forEach((item, i) => item.classList.toggle('is-active', i === active));
+      if (prev) prev.disabled = active === 0;
+      if (next) next.disabled = active === items.length - 1;
+      if (scroll) {
+        rail.scrollTo({
+          left: centerOf(items[active]) - rail.clientWidth / 2,
+          behavior: 'smooth',
+        });
+      }
+    };
+
+    const syncToScroll = () => {
+      const middle = rail.scrollLeft + rail.clientWidth / 2;
+      let best = 0;
+      let distance = Infinity;
+      items.forEach((item, i) => {
+        const delta = Math.abs(centerOf(item) - middle);
+        if (delta < distance) {
+          distance = delta;
+          best = i;
+        }
+      });
+      setActive(best);
+    };
+
+    let frame = 0;
+    rail.addEventListener(
+      'scroll',
+      () => {
+        cancelAnimationFrame(frame);
+        frame = requestAnimationFrame(syncToScroll);
+      },
+      { passive: true },
+    );
+
+    prev?.addEventListener('click', () => setActive(active - 1, true));
+    next?.addEventListener('click', () => setActive(active + 1, true));
+
+    rail.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault();
+        setActive(active - 1, true);
+      }
+      if (event.key === 'ArrowRight') {
+        event.preventDefault();
+        setActive(active + 1, true);
+      }
+    });
+
+    let dragging = false;
+    let moved = false;
+    let startX = 0;
+    let startScroll = 0;
+
+    rail.addEventListener('pointerdown', (event) => {
+      if (event.pointerType !== 'mouse') return;
+      dragging = true;
+      moved = false;
+      startX = event.clientX;
+      startScroll = rail.scrollLeft;
+      rail.setPointerCapture(event.pointerId);
+      rail.style.cursor = 'grabbing';
+    });
+
+    rail.addEventListener('pointermove', (event) => {
+      if (!dragging) return;
+      const delta = event.clientX - startX;
+      if (Math.abs(delta) > 4) moved = true;
+      rail.scrollLeft = startScroll - delta;
+    });
+
+    const stopDrag = () => {
+      dragging = false;
+      rail.style.cursor = '';
+    };
+
+    rail.addEventListener('pointerup', stopDrag);
+    rail.addEventListener('pointercancel', stopDrag);
+    rail.addEventListener('dragstart', (event) => event.preventDefault());
+    rail.addEventListener(
+      'click',
+      (event) => {
+        if (!moved) return;
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      true,
+    );
+
+    setActive(0, true);
+    window.addEventListener('resize', () => setActive(active, true));
+  }
+
+  const reveals = Array.from(document.querySelectorAll<HTMLElement>('[data-reveal]'));
+  if (reveals.length > 0) {
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            const el = entry.target as HTMLElement;
+            el.style.transitionDelay = `${el.dataset.revealDelay ?? 0}ms`;
+            el.classList.add('is-visible');
+            observer.unobserve(el);
+          });
+        },
+        { threshold: 0.2, rootMargin: '0px 0px -6% 0px' },
+      );
+
+      reveals.forEach((el, index) => {
+        el.dataset.revealDelay = String(Math.min(index, 5) * 90);
+        observer.observe(el);
+      });
+    } else {
+      reveals.forEach((el) => el.classList.add('is-visible'));
+    }
+  }
+</script>
