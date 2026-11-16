@@ -59,6 +59,12 @@ const ogPath = fs.existsSync(`./public/og/${post.id}.png`)
 const ogImage = new URL(ogPath, site.url).href;
 const lang = post.data.lang;
 
+const scene = [
+  { label: '在听', value: post.data.listening },
+  { label: '天气', value: post.data.weather },
+  { label: '写于', value: post.data.place },
+].filter((item): item is { label: string; value: string } => Boolean(item.value));
+
 const articleLd = {
   '@context': 'https://schema.org',
   '@type': 'BlogPosting',
@@ -113,6 +119,9 @@ const breadcrumbLd = {
   jsonLd={[articleLd, breadcrumbLd]}
 >
   <article lang={lang === 'en' ? 'en' : 'zh-CN'} data-article-slug={post.id}>
+    <p class="print-only">
+      {site.name} · {site.author} · {formatDate(post.data.date, lang)} · {canonical}
+    </p>
     <header class="article-head container">
       <nav class="breadcrumb" aria-label="面包屑">
         <a href="/">首页</a>
@@ -154,6 +163,22 @@ const breadcrumbLd = {
         <span aria-hidden="true">·</span>
         <span>{post.data.tags.length} 个标签</span>
       </div>
+
+      {
+        scene.length > 0 && (
+          <aside class="writing-scene" aria-label="写作现场">
+            <p class="writing-scene__kicker">写作现场</p>
+            <dl>
+              {scene.map((item) => (
+                <div class="writing-scene__item">
+                  <dt>{item.label}</dt>
+                  <dd>{item.value}</dd>
+                </div>
+              ))}
+            </dl>
+          </aside>
+        )
+      }
     </header>
 
     <div class="article-divider container" aria-hidden="true">
@@ -242,6 +267,14 @@ const breadcrumbLd = {
                 <small>提 PR 修正错字</small>
               </span>
             </a>
+
+            <button class="publish-action" type="button" data-print>
+              <span class="publish-action__icon"><Icon name="print" size={17} /></span>
+              <span class="publish-action__body">
+                <strong>打印 / 存 PDF</strong>
+                <small>A4 排版，链接自动展开</small>
+              </span>
+            </button>
 
             <button class="publish-action publish-action--accent" type="button" data-share-open>
               <span class="publish-action__icon"><Icon name="share" size={17} /></span>
@@ -476,6 +509,55 @@ const breadcrumbLd = {
     font-size: 0.66rem;
     letter-spacing: 0.06em;
     color: var(--ink-3);
+  }
+
+  /* 写作现场 */
+  .writing-scene {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.7rem 1.6rem;
+    margin-top: 1rem;
+    padding: 0.7rem 0.9rem;
+    border-left: 3px solid var(--red);
+    background: var(--paper-raised);
+  }
+
+  .writing-scene__kicker {
+    font-family: var(--font-mono);
+    font-size: 0.54rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--red-strong);
+  }
+
+  .writing-scene dl {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    margin: 0;
+  }
+
+  .writing-scene__item {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .writing-scene dt {
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+
+  .writing-scene dd {
+    margin: 0;
+    color: var(--ink);
+    font-family: var(--font-display);
+    font-size: 0.92rem;
+    line-height: 1.4;
   }
 
   .article-divider {
@@ -759,6 +841,127 @@ const breadcrumbLd = {
     }
   }
 
+  .print-only {
+    display: none;
+  }
+
+  @page {
+    margin: 16mm 14mm;
+  }
+
+  @media print {
+    :global(html),
+    :global(body) {
+      background: #fff !important;
+      color: #000 !important;
+    }
+
+    :global(body::before) {
+      display: none !important;
+    }
+
+    :global(.site-header),
+    :global(.site-footer),
+    :global(.skip-link),
+    :global(.copy-toast),
+    :global(.reading-aids),
+    :global(dialog),
+    .article-share,
+    .article-toc,
+    .mobile-toc,
+    .comments,
+    .publish-panel,
+    .article-related,
+    .article-pager,
+    .series-nav,
+    .article-divider {
+      display: none !important;
+    }
+
+    .print-only {
+      display: block;
+      margin-bottom: 10mm;
+      padding-bottom: 3mm;
+      border-bottom: 0.6pt solid #000;
+      font-family: var(--font-mono);
+      font-size: 7.5pt;
+      letter-spacing: 0.04em;
+      color: #444;
+    }
+
+    .article-head,
+    .article-layout {
+      width: auto;
+      max-width: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .article-layout {
+      display: block;
+    }
+
+    .article-head__title {
+      font-size: 24pt;
+      line-height: 1.2;
+    }
+
+    .article-head__desc {
+      font-size: 10pt;
+      color: #333;
+    }
+
+    .writing-scene {
+      border-left: 1.5pt solid #000;
+      background: #f4f4f4 !important;
+    }
+
+    .prose {
+      font-size: 10.5pt;
+      line-height: 1.6;
+      color: #000;
+    }
+
+    .prose :global(h2)::before,
+    .prose :global(h2)::after {
+      display: none;
+    }
+
+    .prose :global(h2),
+    .prose :global(h3) {
+      break-after: avoid;
+    }
+
+    .prose :global(pre),
+    .prose :global(blockquote),
+    .prose :global(figure),
+    .prose :global(table) {
+      break-inside: avoid;
+    }
+
+    .prose :global(pre) {
+      border: 0.5pt solid #999;
+      background: #f4f4f4 !important;
+      white-space: pre-wrap;
+    }
+
+    .prose :global(img) {
+      max-width: 100% !important;
+    }
+
+    .prose :global(a) {
+      color: #000;
+      text-decoration: underline;
+    }
+
+    .prose :global(a[href^='http'])::after {
+      content: ' (' attr(href) ')';
+      font-size: 7.5pt;
+      color: #555;
+      word-break: break-all;
+    }
+  }
+
   /* 专题导航 */
   .series-nav {
     margin-top: clamp(3rem, 6vw, 4.5rem);
@@ -1019,6 +1222,10 @@ const breadcrumbLd = {
   if (slug) {
     bootAccount().then(() => recordView(slug));
   }
+
+  document.querySelector('[data-print]')?.addEventListener('click', () => {
+    window.print();
+  });
 
   const copyButton = document.querySelector<HTMLButtonElement>('[data-copy-md]');
 

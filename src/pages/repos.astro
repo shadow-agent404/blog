@@ -3,6 +3,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import RepoRow from '../components/RepoRow.astro';
 import Icon from '../components/Icon.astro';
 import reposData from '../data/repos.json';
+import modrinthData from '../data/modrinth.json';
 import { site } from '../site.config';
 
 const repos = reposData.repos;
@@ -10,6 +11,22 @@ const github = site.socials.find((item) => item.icon === 'github');
 const updated = reposData.fetchedAt
   ? new Date(reposData.fetchedAt).toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })
   : '';
+
+const modrinth = modrinthData.projects;
+
+const versionTypeLabel: Record<string, string> = {
+  release: '正式版',
+  beta: '测试版',
+  alpha: '预览版',
+};
+
+const formatDay = (iso: string) =>
+  new Date(iso).toLocaleDateString('zh-CN', {
+    timeZone: 'Asia/Shanghai',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -54,7 +71,103 @@ const jsonLd = {
     </div>
   </section>
 
+  {
+    modrinth.length > 0 && (
+      <section class="container modrinth-section" aria-labelledby="modrinth-title">
+        <header class="section-head">
+          <div>
+            <p class="kicker">Modrinth · 插件版本</p>
+            <h2 id="modrinth-title">正在维护的插件</h2>
+          </div>
+          <span class="folio">构建时同步</span>
+        </header>
+
+        {modrinth.map((project) => (
+          <article class="mr-project">
+            <div class="mr-project__head">
+              {project.icon && (
+                <img
+                  class="mr-project__icon"
+                  src={project.icon}
+                  alt=""
+                  width="56"
+                  height="56"
+                  loading="lazy"
+                />
+              )}
+              <div class="mr-project__intro">
+                <h3>
+                  <a href={project.url} target="_blank" rel="noopener noreferrer">
+                    {project.title}
+                    <Icon name="external" size={14} />
+                  </a>
+                </h3>
+                <p>{project.description}</p>
+              </div>
+              <dl class="mr-project__stats">
+                <div>
+                  <dt>下载</dt>
+                  <dd>{project.downloads.toLocaleString('zh-CN')}</dd>
+                </div>
+                <div>
+                  <dt>关注</dt>
+                  <dd>{project.followers}</dd>
+                </div>
+              </dl>
+            </div>
+
+            <ol class="mr-versions">
+              {project.versions.map((version) => (
+                <li class="mr-version">
+                  <div class="mr-version__top">
+                    <a
+                      class="mr-version__name"
+                      href={version.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {version.versionNumber}
+                    </a>
+                    <span class="mr-version__type" data-type={version.versionType}>
+                      {versionTypeLabel[version.versionType] ?? version.versionType}
+                    </span>
+                    <time datetime={version.publishedAt}>{formatDay(version.publishedAt)}</time>
+                    <span class="mr-version__meta">
+                      {version.gameVersions.slice(-3).join(' / ')}
+                      {version.gameVersions.length > 3 && ` +${version.gameVersions.length - 3}`}
+                    </span>
+                  </div>
+                  {version.changelog && (
+                    <details class="mr-version__log">
+                      <summary>更新日志</summary>
+                      <pre>{version.changelog}</pre>
+                    </details>
+                  )}
+                </li>
+              ))}
+            </ol>
+
+            <p class="mr-project__foot">
+              <a href={project.url} target="_blank" rel="noopener noreferrer">
+                在 Modrinth 查看全部版本
+                <Icon name="arrow-right" size={14} />
+              </a>
+            </p>
+          </article>
+        ))}
+      </section>
+    )
+  }
+
   <section class="container repo-section" aria-label="公开仓库列表">
+    <header class="section-head">
+      <div>
+        <p class="kicker">GitHub</p>
+        <h2>公开仓库</h2>
+      </div>
+      <span class="folio">{repos.length} Repos</span>
+    </header>
+
     {
       repos.length > 0 ? (
         <>
@@ -77,9 +190,218 @@ const jsonLd = {
 
 <style>
   .repo-section {
-    padding-top: 0;
+    padding-top: clamp(2rem, 4vw, 3rem);
     padding-bottom: clamp(3rem, 8vw, 6rem);
     max-width: 56rem;
+  }
+
+  /* Modrinth 插件版本 */
+  .modrinth-section {
+    max-width: 56rem;
+    padding-top: 0;
+    padding-bottom: clamp(1.5rem, 4vw, 2.5rem);
+  }
+
+  .mr-project {
+    margin-top: 1.2rem;
+    border: 1px solid var(--ink);
+    background: var(--paper-raised);
+  }
+
+  .mr-project__head {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.1rem 1.2rem;
+    border-bottom: 3px solid var(--ink);
+  }
+
+  .mr-project__icon {
+    flex: none;
+    width: 3.5rem;
+    height: 3.5rem;
+    border: 1px solid var(--rule);
+    object-fit: cover;
+  }
+
+  .mr-project__intro {
+    min-width: 0;
+  }
+
+  .mr-project__intro h3 {
+    margin: 0;
+    font-size: clamp(1.15rem, 2.4vw, 1.45rem);
+    letter-spacing: -0.02em;
+  }
+
+  .mr-project__intro h3 a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+
+  .mr-project__intro h3 a:hover {
+    color: var(--red-strong);
+  }
+
+  .mr-project__intro p {
+    margin-top: 0.3rem;
+    color: var(--ink-3);
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
+
+  .mr-project__stats {
+    display: flex;
+    flex: none;
+    gap: 1.2rem;
+    margin: 0 0 0 auto;
+  }
+
+  .mr-project__stats div {
+    text-align: right;
+  }
+
+  .mr-project__stats dt {
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .mr-project__stats dd {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
+    color: var(--ink);
+  }
+
+  .mr-versions {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .mr-version {
+    padding: 0.75rem 1.2rem;
+    border-top: 1px dashed var(--rule);
+  }
+
+  .mr-version:first-child {
+    border-top: 0;
+  }
+
+  .mr-version__top {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.55rem;
+  }
+
+  .mr-version__name {
+    color: var(--ink);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+
+  .mr-version__name:hover {
+    color: var(--red-strong);
+    border-bottom-color: var(--red);
+  }
+
+  .mr-version__type {
+    padding: 0.1rem 0.35rem;
+    border: 1px solid var(--rule);
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.5rem;
+    letter-spacing: 0.08em;
+  }
+
+  .mr-version__type[data-type='release'] {
+    border-color: var(--red);
+    color: var(--red-strong);
+  }
+
+  .mr-version time {
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+  }
+
+  .mr-version__meta {
+    margin-left: auto;
+    color: var(--ink-3);
+    font-family: var(--font-mono);
+    font-size: 0.56rem;
+  }
+
+  .mr-version__log {
+    margin-top: 0.45rem;
+  }
+
+  .mr-version__log summary {
+    cursor: pointer;
+    color: var(--blue-strong);
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.06em;
+  }
+
+  .mr-version__log pre {
+    max-height: 16rem;
+    margin-top: 0.5rem;
+    padding: 0.7rem 0.8rem;
+    overflow: auto;
+    border-left: 2px solid var(--rule);
+    background: var(--paper-sunk);
+    color: var(--ink-2);
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+  }
+
+  .mr-project__foot {
+    margin: 0;
+    padding: 0.8rem 1.2rem;
+    border-top: 1px solid var(--rule);
+  }
+
+  .mr-project__foot a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: var(--blue-strong);
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    text-decoration: none;
+  }
+
+  @media (max-width: 620px) {
+    .mr-project__head {
+      flex-wrap: wrap;
+    }
+
+    .mr-project__stats {
+      width: 100%;
+      margin-left: 0;
+    }
+
+    .mr-project__stats div {
+      text-align: left;
+    }
+
+    .mr-version__meta {
+      margin-left: 0;
+    }
   }
 
   .repo-list {

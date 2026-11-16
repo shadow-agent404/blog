@@ -39,6 +39,20 @@ wrangler pages dev dist --kv LIKES --kv SESSIONS
 
 内容在构建前由脚本同步，不要手改 `dist/`。
 
+### 写作现场
+
+文章 frontmatter 可以选填三项，填写后文章头部会出现一条「写作现场」批注，留空则不显示：
+
+```yaml
+listening: 坂本龍一 - async
+weather: 雨，18°C
+place: 书桌前
+```
+
+### Modrinth 版本
+
+`scripts/sync-content.mjs` 会在构建前拉取 Modrinth 项目 `AQ3n1LCg`（Bento）的公开版本与更新日志，写入 `src/data/modrinth.json`，展示在 `/repos/`。这是公开 API，不需要密钥；网络失败时保留上一次快照，不阻断构建。要同步其他项目，在脚本的 `targets` 数组里加 `{ id, slug }`。
+
 ## 登录与账号
 
 只登录，不注册，不提供账号密码。全部使用第三方 OAuth、邮箱魔法链接或 Telegram，不使用微信 / QQ / Microsoft 这类需要实名或信用卡的平台。

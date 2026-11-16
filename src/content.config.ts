@@ -22,6 +22,10 @@ const posts = defineCollection({
     coverWord: z.string().optional(),
     series: z.string().optional(),
     seriesOrder: z.number().default(0),
+    /** 写作现场：当天在听、天气、写于哪里；留空则不显示。 */
+    listening: z.string().optional(),
+    weather: z.string().optional(),
+    place: z.string().optional(),
   }),
 });
 

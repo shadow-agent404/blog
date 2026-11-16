@@ -115,6 +115,71 @@ async function fetchGithub() {
   };
 }
 
+async function fetchModrinth() {
+  const headers = {
+    Accept: 'application/json',
+    'User-Agent': 'sa-blog-content-sync (https://blog.tenyearmc.top)',
+  };
+  const targets = [{ id: 'AQ3n1LCg', slug: 'bento' }];
+  const projects = [];
+
+  for (const target of targets) {
+    const [projectRes, versionsRes] = await Promise.all([
+      fetch(`https://api.modrinth.com/v2/project/${target.id}`, {
+        headers,
+        signal: AbortSignal.timeout(20000),
+      }),
+      fetch(`https://api.modrinth.com/v2/project/${target.id}/version`, {
+        headers,
+        signal: AbortSignal.timeout(20000),
+      }),
+    ]);
+
+    if (!projectRes.ok || !versionsRes.ok) {
+      throw new Error(`Modrinth HTTP ${projectRes.status}/${versionsRes.status}`);
+    }
+
+    const project = await projectRes.json();
+    const versions = await versionsRes.json();
+    if (!Array.isArray(versions) || versions.length === 0) {
+      throw new Error(`Modrinth 项目 ${target.slug} 没有版本`);
+    }
+
+    const sorted = versions
+      .slice()
+      .sort((a, b) => String(b.date_published).localeCompare(String(a.date_published)));
+
+    projects.push({
+      id: project.id,
+      slug: project.slug,
+      title: project.title,
+      description: project.description,
+      icon: project.icon_url || '',
+      downloads: project.downloads,
+      followers: project.followers,
+      updated: project.updated,
+      url: `https://modrinth.com/project/${project.slug}`,
+      versions: sorted.slice(0, 8).map((version) => ({
+        id: version.id,
+        name: version.name,
+        versionNumber: version.version_number,
+        versionType: version.version_type,
+        publishedAt: version.date_published,
+        gameVersions: version.game_versions ?? [],
+        loaders: version.loaders ?? [],
+        downloads: version.downloads,
+        changelog: String(version.changelog || '').trim(),
+        url: `https://modrinth.com/project/${project.slug}/version/${version.id}`,
+      })),
+    });
+  }
+
+  return {
+    source: 'https://modrinth.com/user/shadow-agent404',
+    projects,
+  };
+}
+
 async function sync(name, file, fetcher, key) {
   const old = await readJson(file);
   try {
@@ -134,3 +199,4 @@ async function sync(name, file, fetcher, key) {
 
 await sync('Bilibili 视频', 'videos.json', fetchBilibili, 'videos');
 await sync('GitHub 仓库', 'repos.json', fetchGithub, 'repos');
+await sync('Modrinth 插件', 'modrinth.json', fetchModrinth, 'projects');
