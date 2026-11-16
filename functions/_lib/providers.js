@@ -16,6 +16,8 @@ export const providers = {
     scope: 'read:user user:email',
     tokenAuth: 'body',
     pkce: false,
+    // OAuth App 的 Client ID 是公开信息，允许在环境变量缺失时回退到公开值。
+    fallbackClientId: 'Ov23li2OeeuPqpuMF4Z5',
     env: { clientId: 'AUTH_GITHUB_CLIENT_ID', clientSecret: 'AUTH_GITHUB_CLIENT_SECRET' },
     userHeaders: { accept: 'application/vnd.github+json', 'user-agent': 'paper-scraps-auth' },
     async mapUser(data, { token }) {
@@ -295,6 +297,10 @@ export const providerOrder = [
   'email',
 ];
 
+function clientIdOf(provider, env) {
+  return env[provider.env.clientId] || provider.fallbackClientId || '';
+}
+
 export function isConfigured(provider, env) {
   if (provider.kind === 'email') {
     return Boolean(env.RESEND_API_KEY && env.AUTH_EMAIL_FROM);
@@ -302,7 +308,7 @@ export function isConfigured(provider, env) {
   if (provider.kind === 'telegram') {
     return Boolean(env.AUTH_TELEGRAM_BOT_TOKEN && env.AUTH_TELEGRAM_BOT_USERNAME);
   }
-  const clientId = env[provider.env.clientId];
+  const clientId = clientIdOf(provider, env);
   const clientSecret = provider.confidential === false ? 'public' : env[provider.env.clientSecret];
   const instance = provider.instanceEnv ? env[provider.instanceEnv] : 'ok';
   return Boolean(clientId && clientSecret && instance);
@@ -332,7 +338,7 @@ export function callbackUrl(request, providerId) {
 
 export function authorizeUrl(provider, request, env, { state, codeChallenge, providerId }) {
   const url = new URL(provider.authorizeUrl(env));
-  url.searchParams.set('client_id', env[provider.env.clientId]);
+  url.searchParams.set('client_id', clientIdOf(provider, env));
   url.searchParams.set('redirect_uri', callbackUrl(request, providerId));
   url.searchParams.set('response_type', 'code');
   url.searchParams.set('scope', provider.scope);
@@ -360,7 +366,7 @@ function parseTokenResponse(text, contentType) {
 }
 
 export async function exchangeCode(provider, request, env, { code, codeVerifier, providerId }) {
-  const clientId = env[provider.env.clientId];
+  const clientId = clientIdOf(provider, env);
   const clientSecret = provider.confidential === false ? '' : env[provider.env.clientSecret];
   const redirectUri = callbackUrl(request, providerId);
   const params = {
