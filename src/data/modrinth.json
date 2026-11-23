@@ -1,6 +1,6 @@
 {
-  "fetchedAt": "2026-11-16T01:42:33.317Z",
-  "source": "https://modrinth.com/user/shadow-agent404",
+  "fetchedAt": "2026-11-23T15:15:21.999Z",
+  "source": "https://modrinth.com/user/shadow_agent",
   "projects": [
     {
       "id": "AQ3n1LCg",
@@ -8,7 +8,7 @@
       "title": "Bento",
       "description": "The all-in-one YAML menu framework for Paper, Spigot and Folia.",
       "icon": "https://cdn.modrinth.com/data/AQ3n1LCg/19e4f4fc0c17fc8cafd5a371e66deeb3f7db183a_96.webp",
-      "downloads": 12,
+      "downloads": 13,
       "followers": 1,
       "updated": "2026-10-31T03:10:07.102419Z",
       "url": "https://modrinth.com/project/bento",
@@ -59,7 +59,7 @@
             "purpur",
             "spigot"
           ],
-          "downloads": 10,
+          "downloads": 11,
           "changelog": "# 1.0.0 — First release\n\nFirst public release. BentoMenu is a container-menu framework for Spigot, Paper and Folia: menus in YAML, themes players can switch, and an API for everything YAML can't reach.\n\n## Added\n\n- **Menus and layouts** — `menus/*.yml` holds content, `layouts/*.yml` holds shape (1–6 rows, border and content regions). Layouts are reusable across menus.\n- **Four themes** — aurora, ember, mono and sakura, switchable at runtime. Theme and language choices persist per player.\n- **Dynamic content** — pagination, category filters, anvil or chat search, and configurable refresh intervals.\n- **Action chains** — player/console commands, economy withdraw/deposit, item give/take, open/close menu, page change, messages, titles, sounds and theme switching.\n- **Conditions** — permission, balance, held items, server time, random chance, plus a registry for custom conditions from other plugins.\n- **Cooldowns** — per-button, with configurable click debounce.\n- **Text engine** — gradients, hex colors, tags and PlaceholderAPI placeholders wherever a player sees text.\n- **Localization** — `zh_CN` and `en_US` included; every player-facing string lives in `messages/` and can be replaced wholesale.\n- **Developer API** — `dev.bento.menu.api.v1` plus a Kotlin DSL, already shaded into the jar. Register menus, actions, conditions, data sources and themes; listen to open and close events.\n- **Optional resource pack** — real gradient borders and custom icons when installed, stained-glass fallback when not.\n- **Commands** — open, list, theme, language, close, info, reload, validate, stats.\n\n## Compatibility\n\n- Spigot 1.18.2, Paper 1.18.2 / 1.21.11 / 26.1.2 and Folia 1.21.8 passed functional tests.\n- Paper and Folia 26.3 were verified up to startup and plugin enable.\n- No NMS, no ProtocolLib, no client mods.\n- Requires Java 17+, Vault (VaultUnlocked on Folia) and PlaceholderAPI.\n\n## Performance\n\nMeasured with 200 mineflayer bots on a 4-core / 8 GB test machine:\n\n- TPS 20.00 with 200 menus open.\n- 2,225 clicks in 30 seconds: TPS 19.25–20.00.\n- Average click handling 0.061 ms; average render 4.00 ms.\n- 5,632 renders produced 38,680 item updates — no full-inventory resends.\n\n## Known limitations\n\n- Hybrid servers (Mohist, Arclight, …) are best-effort and untested here.\n- 26.3 was only checked for startup; there is no mineflayer protocol for it yet.\n- The resource pack must be delivered by the server owner.\n- Some newer sound and material names fall back on 1.18 clients.\n\n## Notes\n\n- The API package `v1` is the stable surface; internal classes may change in later versions.\n- An optional example addon is attached to this release.\n- MIT licensed. Source, docs and issue tracker: https://github.com/chcucu/BentoMenu",
           "url": "https://modrinth.com/project/bento/version/ZGF0mEJ1"
         }
